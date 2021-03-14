@@ -2,4 +2,7 @@ ChessEngineInCSharp/.vs/
 ChessEngineInCSharp/ChessEngineInCSharp/obj/
 ChessEngineInCSharp/ChessEngineInCSharp/bin/
 ChessEngineInCSharp/ChessEngine.Tests/bin/
-ChessEngineInCSharp/
+
+ChessEngineInCSharp/ChessEngine.Tests/obj/
+ChessEngineInCSharp/ChessEngine/bin/
+ChessEngineInCSharp/ChessEngine/obj/
