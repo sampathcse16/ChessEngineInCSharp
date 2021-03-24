@@ -6,7 +6,7 @@ namespace ChessEngine
 {
     public class Position
     {
-        public short Row { get; set; }
-        public short Column { get; set; }
+        public int Row { get; set; }
+        public int Column { get; set; }
     }
 }

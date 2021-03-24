@@ -24,7 +24,12 @@ namespace ChessEngine.Moves
 
             List<Move> moves = new List<Move>();
 
-            if (row == 8)
+            if (!cell.Piece.Name.EndsWith("P"))
+            {
+                return moves;
+            }
+
+            if (row == 7 || row == 0)
             {
                 return moves;
             }
@@ -34,9 +39,9 @@ namespace ChessEngine.Moves
                 moves.Add(new Move { From = cell.Position, To = board[row + 1, column].Position });
             }
             
-            if (row == 2)
+            if (row == 1)
             {
-                if (board[row + 2, column].Piece == null)
+                if (board[row + 1, column].Piece == null && board[row + 2, column].Piece == null)
                 {
                     moves.Add(new Move { From = cell.Position, To = board[row + 2, column].Position });
                 }
@@ -63,7 +68,12 @@ namespace ChessEngine.Moves
 
             List<Move> moves = new List<Move>();
 
-            if (row == 1)
+            if (!cell.Piece.Name.EndsWith("P"))
+            {
+                return moves;
+            }
+
+            if (row == 0 || row == 7)
             {
                 return moves;
             }
@@ -73,9 +83,9 @@ namespace ChessEngine.Moves
                 moves.Add(new Move { From = cell.Position, To = board[row - 1, column].Position });
             }
 
-            if (row == 7)
+            if (row == 6)
             {
-                if (board[row - 2, column].Piece == null)
+                if (board[row - 1, column].Piece == null && board[row - 2, column].Piece == null)
                 {
                     moves.Add(new Move { From = cell.Position, To = board[row - 2, column].Position });
                 }

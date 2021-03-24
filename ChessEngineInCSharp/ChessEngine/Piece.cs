@@ -8,6 +8,6 @@ namespace ChessEngine
     {
         public string Name { get; set; }
         public bool IsWhite { get; set; }
-        public short Value { get; set; }
+        public int Value { get; set; }
     }
 }
