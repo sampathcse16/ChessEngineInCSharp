@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ChessEngine.Helpers;
-using ChessEngine.Moves;
+using ChessEngine.Pieces;
 using Xunit;
 
-namespace ChessEngine.Tests
+namespace ChessEngine.Tests.PieceMoveTests
 {
     public class PawnTests
     {
@@ -25,11 +23,11 @@ namespace ChessEngine.Tests
                 {"", "", "", "", "", "", "", ""}
             };
 
-           Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
-           Cell cell = board[1, 2];
-           IList<Move> moves = Pawn.GetMoves(board, cell);
-           Assert.True(moves.Count == 0);
+            Cell cell = board[1, 2];
+            IList<Move> moves = Pawn.GetMoves(board, cell);
+            Assert.True(moves.Count == 0);
         }
 
         [Fact]
@@ -158,6 +156,28 @@ namespace ChessEngine.Tests
             moveExist = moves.Any(x => x.From.Row == 6 && x.From.Column == 2
                                                        && x.To.Row == 5 && x.To.Column == 3);
             Assert.True(moveExist);
+        }
+
+        [Fact]
+        public void PawnTests6()
+        {
+            string[,] boardInStringFormat =
+            {
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"WP", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""}
+            };
+
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+
+            Cell cell = board[1, 0];
+            IList<Move> moves = Pawn.GetMoves(board, cell);
+            Assert.True(moves.Count == 2);
         }
     }
 }

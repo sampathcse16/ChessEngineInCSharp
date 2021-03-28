@@ -136,6 +136,42 @@ app {
     top: 0.5rem;
 }
 
+#ChessBoard td {
+    width: 70px;
+    height: 70px;
+    border: 1px silver solid;
+    text-align: center;
+}
+
+#ChessBoard td div{
+    width: 70px;
+    height: 70px;
+}
+
+.no-drop {
+    cursor: no-drop;
+}
+
+table#ChessBoard tr:nth-child(odd) td:nth-child(even) {
+    background: #DC7633;
+}
+
+table#ChessBoard tr:nth-child(even) td:nth-child(odd) {
+    background: #DC7633;
+}
+
+table#ChessBoard tr:nth-child(odd) td:nth-child(odd) {
+    background: seashell;
+}
+
+table#ChessBoard tr:nth-child(even) td:nth-child(even) {
+    background: seashell;
+}
+
+#ChessBoard div {
+    font-size: 300%;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row:not(.auth) {
         display: none;

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ChessEngine.Helpers;
-using ChessEngine.Moves;
+using ChessEngine.Pieces;
 using Xunit;
 
-namespace ChessEngine.Tests
+namespace ChessEngine.Tests.PieceMoveTests
 {
     public class KnightTests
     {

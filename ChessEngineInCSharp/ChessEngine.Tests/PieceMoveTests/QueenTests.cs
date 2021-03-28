@@ -1,46 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using ChessEngine.Helpers;
-using ChessEngine.Moves;
+using ChessEngine.Pieces;
 using Xunit;
 
-namespace ChessEngine.Tests
+namespace ChessEngine.Tests.PieceMoveTests
 {
-    public class RookTests
+    public class QueenTests
     {
         [Fact]
-        public void RookTests1()
+        public void QueenTests1()
         {
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "BR", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
-            };                                    
-
-            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
-
-            Cell cell = board[4, 3];
-            IList<Move> moves = Rook.GetMoves(board, cell);
-            Assert.True(moves.Count == 14);
-        }
-
-        [Fact]
-        public void RookTests2()
-        {
-            string[,] boardInStringFormat =
-            {
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "BR", "WP", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
@@ -50,23 +25,19 @@ namespace ChessEngine.Tests
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
             Cell cell = board[4, 3];
-            IList<Move> moves = Rook.GetMoves(board, cell);
-            Assert.True(moves.Count == 11);
-
-            bool moveExist = moves.Any(x => x.From.Row == 4 && x.From.Column == 3
-                                                            && x.To.Row == 4 && x.To.Column == 4);
-            Assert.True(moveExist);
+            IList<Move> moves = Queen.GetMoves(board, cell);
+            Assert.True(moves.Count == 27);
         }
 
         [Fact]
-        public void RookTests3()
+        public void QueenTests2()
         {
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "BR", "BP", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "BP", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
@@ -76,20 +47,20 @@ namespace ChessEngine.Tests
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
             Cell cell = board[4, 3];
-            IList<Move> moves = Rook.GetMoves(board, cell);
-            Assert.True(moves.Count == 10);
+            IList<Move> moves = Queen.GetMoves(board, cell);
+            Assert.True(moves.Count == 25);
         }
 
         [Fact]
-        public void RookTests4()
+        public void QueenTests3()
         {
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "WP", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "WR", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "BP", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
@@ -98,30 +69,30 @@ namespace ChessEngine.Tests
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
             Cell cell = board[4, 3];
-            IList<Move> moves = Rook.GetMoves(board, cell);
-            Assert.True(moves.Count == 11);
+            IList<Move> moves = Queen.GetMoves(board, cell);
+            Assert.True(moves.Count == 24);
         }
 
         [Fact]
-        public void RookTests5()
+        public void QueenTests4()
         {
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "WP", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "WP", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"WR", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
             };
 
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
-            Cell cell = board[0, 0];
-            IList<Move> moves = Rook.GetMoves(board, cell);
-            Assert.True(moves.Count == 14);
+            Cell cell = board[4, 3];
+            IList<Move> moves = Queen.GetMoves(board, cell);
+            Assert.True(moves.Count == 21);
         }
     }
 }

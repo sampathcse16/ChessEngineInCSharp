@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ChessEngine.Helpers;
-using ChessEngine.Moves;
+using ChessEngine.Pieces;
 using Xunit;
 
-namespace ChessEngine.Tests
+namespace ChessEngine.Tests.PieceMoveTests
 {
-    public class QueenTests
+    public class KingTests
     {
         [Fact]
-        public void QueenTests1()
+        public void KingTests1()
         {
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "WK", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
@@ -27,19 +25,19 @@ namespace ChessEngine.Tests
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
             Cell cell = board[4, 3];
-            IList<Move> moves = Queen.GetMoves(board, cell);
-            Assert.True(moves.Count == 27);
+            IList<Move> moves = King.GetMoves(board, cell);
+            Assert.True(moves.Count == 8);
         }
 
         [Fact]
-        public void QueenTests2()
+        public void KingTests2()
         {
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "BP", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "WK", "WP", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
@@ -49,42 +47,42 @@ namespace ChessEngine.Tests
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
             Cell cell = board[4, 3];
-            IList<Move> moves = Queen.GetMoves(board, cell);
-            Assert.True(moves.Count == 25);
+            IList<Move> moves = King.GetMoves(board, cell);
+            Assert.True(moves.Count == 7);
         }
 
         [Fact]
-        public void QueenTests3()
+        public void KingTests3()
         {
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "WP", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"WK", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
             };
 
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
-            Cell cell = board[4, 3];
-            IList<Move> moves = Queen.GetMoves(board, cell);
-            Assert.True(moves.Count == 24);
+            Cell cell = board[0, 0];
+            IList<Move> moves = King.GetMoves(board, cell);
+            Assert.True(moves.Count == 3);
         }
 
         [Fact]
-        public void QueenTests4()
+        public void KingTests4()
         {
             string[,] boardInStringFormat =
             {
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "WK"},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "WP", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "WQ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "WP", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
@@ -92,9 +90,31 @@ namespace ChessEngine.Tests
 
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
 
-            Cell cell = board[4, 3];
-            IList<Move> moves = Queen.GetMoves(board, cell);
-            Assert.True(moves.Count == 21);
+            Cell cell = board[7, 7];
+            IList<Move> moves = King.GetMoves(board, cell);
+            Assert.True(moves.Count == 3);
+        }
+
+        [Fact]
+        public void KingTests5()
+        {
+            string[,] boardInStringFormat =
+            {
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "WK"},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "BP", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
+            };
+
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+
+            Cell cell = board[7, 7];
+            IList<Move> moves = King.GetMoves(board, cell);
+            Assert.True(moves.Count == 3);
         }
     }
 }
