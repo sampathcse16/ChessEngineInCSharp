@@ -116,7 +116,7 @@ namespace ChessEngine.Tests.PieceMoveTests
             Assert.True(moveExist);
 
             moveExist = moves.Any(x => x.From.Row == 6 && x.From.Column == 2
-                                                       && x.To.Row == 5 && x.To.Column == 1);
+                                                       && x.To.Row == 5 && x.To.Column == 3);
             Assert.True(moveExist);
         }
 
@@ -139,7 +139,7 @@ namespace ChessEngine.Tests.PieceMoveTests
 
             Cell cell = board[6, 2];
             IList<Move> moves = Pawn.GetMoves(board, cell);
-            Assert.True(moves.Count == 4);
+            Assert.True(moves.Count == 2);
 
             bool moveExist = moves.Any(x => x.From.Row == 6 && x.From.Column == 2
                                                             && x.To.Row == 5 && x.To.Column == 2);
@@ -147,14 +147,6 @@ namespace ChessEngine.Tests.PieceMoveTests
 
             moveExist = moves.Any(x => x.From.Row == 6 && x.From.Column == 2
                                                        && x.To.Row == 4 && x.To.Column == 2);
-            Assert.True(moveExist);
-
-            moveExist = moves.Any(x => x.From.Row == 6 && x.From.Column == 2
-                                                       && x.To.Row == 5 && x.To.Column == 1);
-            Assert.True(moveExist);
-
-            moveExist = moves.Any(x => x.From.Row == 6 && x.From.Column == 2
-                                                       && x.To.Row == 5 && x.To.Column == 3);
             Assert.True(moveExist);
         }
 

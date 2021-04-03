@@ -147,6 +147,8 @@ namespace UI.Pages
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 Node node = new Node();
+                CacheService cacheService = new CacheService();
+                cacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
                 ChessEngine.Engine.ChessEngine.GetBestMoveUsingMinMax(node, Board, 4, true, 0, null, null);
                 Move move = node.Moves.OrderByDescending(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)]).FirstOrDefault();
                 ChessEngine.Engine.ChessEngine.MakeMove(Board, move);

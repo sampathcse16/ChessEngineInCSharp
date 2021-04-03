@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ChessEngine.Pieces;
+using UI.Services;
 
 namespace ChessEngine.Helpers
 {
@@ -105,6 +106,61 @@ namespace ChessEngine.Helpers
                         case "WK":
                         case "BK":
                             King.AddMoves(board, board[i, j], moves);
+                            break;
+                    }
+                }
+            }
+
+            return moves;
+        }
+
+        public static List<Move> GetAllMovesForCurrentTurnWithOptimizationVersion3(Cell[,] board, bool isWhiteTurn)
+        {
+            CacheService cacheService = new CacheService();
+            cacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
+            List<Move> moves = new List<Move>();
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (board[i, j].Piece == null)
+                    {
+                        continue;
+                    }
+
+                    Piece piece = board[i, j].Piece;
+
+                    if (piece.IsWhite != isWhiteTurn)
+                    {
+                        continue;
+                    }
+
+                    switch (piece.Name)
+                    {
+                        case "WP":
+                        case "BP":
+                            moves.AddRange(Pawn.GetMovesFromCache(board, board[i, j]));
+                            break;
+                        case "WB":
+                        case "BB":
+                            moves.AddRange(Bishop.GetMovesFromCache(board, board[i, j]));
+                            break;
+                        case "WN":
+                        case "BN":
+                            moves.AddRange(Knight.GetMovesFromCache(board, board[i, j]));
+                            break;
+                        case "WR":
+                        case "BR":
+                            moves.AddRange(Rook.GetMovesFromCache(board, board[i, j]));
+                            break;
+                        case "WQ":
+                        case "BQ":
+                            moves.AddRange(Queen.GetMovesFromCache(board, board[i, j]));
+                            break;
+                        case "WK":
+                        case "BK":
+                            moves.AddRange(King.GetMovesFromCache(board, board[i, j]));
                             break;
                     }
                 }

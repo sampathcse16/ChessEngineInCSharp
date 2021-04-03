@@ -22,13 +22,13 @@ namespace UI.Services
 
             for (int i = 0; i < 8; i++)
             {
-                for (int j = 0; j < 8; j++)
+                for (int j = 0; j < 8; j++, fromCounter++)
                 {
                     int toCounter = 0;
 
                     for (int k = 0; k < 8; k++)
                     {
-                        for (int l = 0; l < 8; l++)
+                        for (int l = 0; l < 8; l++, toCounter++)
                         {
                             if (i == k && j == l)
                             {
@@ -42,6 +42,7 @@ namespace UI.Services
                                 To = new Position { Row = k, Column = l }
                             };
 
+                            
                         }
                     }
                 }

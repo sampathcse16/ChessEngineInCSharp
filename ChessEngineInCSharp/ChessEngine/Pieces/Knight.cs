@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UI.Services;
 
 namespace ChessEngine.Pieces
 {
@@ -225,6 +226,224 @@ namespace ChessEngine.Pieces
                     moves.Add(new Move { From = cell.Position, To = new Position { Row = row - 2, Column = column - 1 } });
                 }
             }
+        }
+
+        #endregion
+
+        #region Optimization Version#3
+
+        public static List<Move> GetMovesFromCache(Cell[,] board, Cell cell)
+        {
+            int row = cell.Position.Row;
+            int column = cell.Position.Column;
+            int moveId = 0;
+            List<Move> moves = new List<Move>();
+
+            if (!cell.Piece.Name.EndsWith("N"))
+            {
+                return moves;
+            }
+
+            if (row + 1 < 8 && column + 2 < 8)
+            {
+                if (board[row + 1, column + 2].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column + 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row + 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column + 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row + 1 < 8 && column - 2 >= 0)
+            {
+                if (board[row + 1, column - 2].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column - 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row + 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column - 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row + 2 < 8 && column + 1 < 8)
+            {
+                if (board[row + 2, column + 1].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column + 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row + 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column + 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row + 2 < 8 && column - 1 >= 0)
+            {
+                if (board[row + 2, column - 1].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column - 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row + 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column - 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 1 >= 0 && column + 2 < 8)
+            {
+                if (board[row - 1, column + 2].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column + 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row - 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column + 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 1 >= 0 && column - 2 >= 0)
+            {
+                if (board[row - 1, column - 2].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column - 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row - 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column - 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 2 >= 0 && column + 1 < 8)
+            {
+                if (board[row - 2, column + 1].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column + 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row - 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column + 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 2 >= 0 && column - 1 >= 0)
+            {
+                if (board[row - 2, column - 1].Piece == null)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column - 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+                else if (board[row - 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column - 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            return moves;
+        }
+
+        public static List<Move> GetKillingMovesFromCache(Cell[,] board, Cell cell)
+        {
+            int row = cell.Position.Row;
+            int column = cell.Position.Column;
+            int moveId = 0;
+            List<Move> moves = new List<Move>();
+
+            if (!cell.Piece.Name.EndsWith("N"))
+            {
+                return moves;
+            }
+
+            if (row + 1 < 8 && column + 2 < 8)
+            {
+                if (board[row + 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column + 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row + 1 < 8 && column - 2 >= 0)
+            {
+                if (board[row + 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column - 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row + 2 < 8 && column + 1 < 8)
+            {
+                if (board[row + 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column + 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row + 2 < 8 && column - 1 >= 0)
+            {
+                if (board[row + 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column - 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 1 >= 0 && column + 2 < 8)
+            {
+                if (board[row - 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column + 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 1 >= 0 && column - 2 >= 0)
+            {
+                if (board[row - 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column - 2));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 2 >= 0 && column + 1 < 8)
+            {
+                if (board[row - 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column + 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            if (row - 2 >= 0 && column - 1 >= 0)
+            {
+                if (board[row - 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
+                {
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column - 1));
+                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                }
+            }
+
+            return moves;
         }
 
         #endregion
