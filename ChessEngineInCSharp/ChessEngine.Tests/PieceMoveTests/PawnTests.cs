@@ -171,5 +171,49 @@ namespace ChessEngine.Tests.PieceMoveTests
             IList<Move> moves = Pawn.GetMoves(board, cell);
             Assert.True(moves.Count == 2);
         }
+
+        [Fact]
+        public void PawnTests7()
+        {
+            string[,] boardInStringFormat =
+            {
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "BK", "", "", "", "", "", ""},
+                {"WP", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""}
+            };
+
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+
+            Cell cell = board[1, 0];
+            bool isOpponentKingIsInCheck = Pawn.IsOpponentKingIsInCheck(board, cell);
+            Assert.True(isOpponentKingIsInCheck);
+        }
+
+        [Fact]
+        public void PawnTests8()
+        {
+            string[,] boardInStringFormat =
+            {
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"", "", "", "", "", "", "", ""},
+                {"BP", "", "", "", "", "", "", ""},
+                {"", "WK", "", "", "", "", "", ""}
+            };
+
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+
+            Cell cell = board[1, 0];
+            bool isOpponentKingIsInCheck = Pawn.IsOpponentKingIsInCheck(board, cell);
+            Assert.True(isOpponentKingIsInCheck);
+        }
     }
 }

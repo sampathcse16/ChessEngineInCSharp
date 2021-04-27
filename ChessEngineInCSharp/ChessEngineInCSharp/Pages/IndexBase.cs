@@ -27,8 +27,10 @@ namespace UI.Pages
         protected override void OnInitialized()
         {
             Board = BoardHelper.GetInitialPositionOfBoard();
+            ZorbistData.FillZorbistData(Board);
             CacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
             ChessEngine.Engine.ChessEngine.AllPossibleMoves = CacheService.AllPossibleMoves;
+            Game.MovesPlayed = new List<Move>();
 
             for (int i = 0; i < 8; i++)
             {
@@ -81,8 +83,15 @@ namespace UI.Pages
                     }
                 }
             }
+
+            BishopMovesHelper.UpdateAllPossibleMovesFromAllSquares();
+            BishopMovesHelper.UpdateAllPossibleMovesForAllBlockers();
+            RookMovesHelper.UpdateAllPossibleMovesFromAllSquares();
+            RookMovesHelper.UpdateAllPossibleMovesForAllBlockers();
+            KnightMovesHelper.UpdateAllPossibleMovesFromAllSquares();
+            KnightMovesHelper.UpdateAllPossibleMovesForAllBlockers();
         }
-        
+
         public async Task HandleDrop(int row, int column)
         {
             Debug.WriteLine($"HandleDrop-->From:{row}->To:{column}");
@@ -94,6 +103,39 @@ namespace UI.Pages
 
             if (DragInfo != null)
             {
+                int moveId = (DragInfo.Row * 8 + DragInfo.Column) * 100 + (row * 8 + column);
+                Move move = CacheService.AllPossibleMoves[moveId];
+                Game.MovesPlayed.Add(move);
+                Game.LastMoveForBlack = move;
+                Game.TotalMovesPlayed++;
+
+                if (DragInfo.Row == 7
+                    && DragInfo.Column == 4
+                    && Board[DragInfo.Row, DragInfo.Column].Piece?.Name == "BK")
+                {
+                    if (row == 7 && column == 6
+                                && Board[DragInfo.Row, DragInfo.Column + 1].Piece == null
+                                && Board[DragInfo.Row, DragInfo.Column + 2].Piece == null
+                        && Board[DragInfo.Row, DragInfo.Column + 3].Piece?.Name == "BR")
+                    {
+                        UiChessBoard[DragInfo.Row, DragInfo.Column + 1] = UiChessBoard[DragInfo.Row, DragInfo.Column + 3];
+                        UiChessBoard[DragInfo.Row, DragInfo.Column + 3] = null;
+                        Board[DragInfo.Row, DragInfo.Column + 1].Piece = Board[DragInfo.Row, DragInfo.Column + 3].Piece;
+                        Board[DragInfo.Row, DragInfo.Column + 3].Piece = null;
+                    }
+                    else if (row == 7 && column == 2
+                                     && Board[DragInfo.Row, DragInfo.Column - 1].Piece == null
+                                     && Board[DragInfo.Row, DragInfo.Column - 2].Piece == null
+                                     && Board[DragInfo.Row, DragInfo.Column - 3].Piece == null
+                                     && Board[DragInfo.Row, DragInfo.Column - 4].Piece?.Name == "BR")
+                    {
+                        UiChessBoard[DragInfo.Row, DragInfo.Column - 1] = UiChessBoard[DragInfo.Row, DragInfo.Column - 4];
+                        UiChessBoard[DragInfo.Row, DragInfo.Column - 4] = null;
+                        Board[DragInfo.Row, DragInfo.Column - 1].Piece = Board[DragInfo.Row, DragInfo.Column - 4].Piece;
+                        Board[DragInfo.Row, DragInfo.Column - 4].Piece = null;
+                    }
+                }
+
                 UiChessBoard[row, column] = UiChessBoard[DragInfo.Row, DragInfo.Column];
                 UiChessBoard[DragInfo.Row, DragInfo.Column] = null;
                 Board[row, column].Piece = Board[DragInfo.Row, DragInfo.Column].Piece;
@@ -143,45 +185,48 @@ namespace UI.Pages
             TotalTimeTaken = 0;
             ProjectedMoves.Clear();
 
+            if (Game.TotalMovesPlayed == 0)
+            {
+                Move move = new Move
+                {
+                    From = new Position{Row = 1, Column = 3},
+                    To = new Position { Row = 3, Column = 3 },
+                };
+                ChessEngine.Engine.ChessEngine.MakeMove(Board, move);
+                MakeMoveOnUI(UiChessBoard, move);
+                UpdateGameInfo(move);
+                return;
+            }
+
             await Task.Run(() =>
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                Node node = new Node();
+                int depth = 6;
                 CacheService cacheService = new CacheService();
                 cacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
-                ChessEngine.Engine.ChessEngine.GetBestMoveUsingMinMax(node, Board, 4, true, 0, null, null);
-                Move move = node.Moves.OrderByDescending(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)]).FirstOrDefault();
+                long zorbistKey = ZorbistData.GetZorbistKeyForCurrentBoardPosition(Board);
+                ChessEngine.Engine.ChessEngine.InitializeTranspositionTables(depth);
+
+                //Node node = new Node();
+                //ChessEngine.Engine.ChessEngine.NodesEvaluated = 0;
+                //ChessEngine.Engine.ChessEngine.GetBestMoveUsingMinMax(node, Board, 2, true, zorbistKey, 0, null, null);
+
+                Node node = new Node();
+                ChessEngine.Engine.ChessEngine.NodesEvaluated = 0;
+                ChessEngine.Engine.ChessEngine.UpdateOccupancies(Board);
+                ChessEngine.Engine.ChessEngine.GetBestMoveUsingAlphaBetaVersion1(node, Board, depth, Int32.MinValue, Int32.MaxValue, true, zorbistKey, 0, null, null, new Stack<Move>(), new HashSet<int>(), new HashSet<int>());
+
+                Move move = node.Moves.Where(x => node.Costs.ContainsKey(ChessEngine.Engine.ChessEngine.GetMoveId(x)))
+                    .OrderByDescending(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)]).FirstOrDefault();
+
+                UpdateGameInfo(move);
+
                 ChessEngine.Engine.ChessEngine.MakeMove(Board, move);
                 MakeMoveOnUI(UiChessBoard, move);
                 watch.Stop();
-                bool isWhite = true;
 
-                while (node != null && move != null)
-                {
-                    int moveId = ChessEngine.Engine.ChessEngine.GetMoveId(move);
-                    ProjectedMoves.Add($"From:{move.From.Row}, {move.From.Column}->To:{move.To.Row}, {move.To.Column}->{node.Costs[moveId]}");
-                    node = node.ChildNodes.FirstOrDefault(x => x.MoveId == moveId);
+                DisplayProjectedMovesOnUI(node, move);
 
-                    if (node == null)
-                    {
-                        break;
-                    }
-
-                    if (isWhite)
-                    {
-                        move = node.Moves
-                            ?.OrderBy(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)])
-                            .FirstOrDefault();
-                    }
-                    else
-                    {
-                        move = node.Moves
-                            ?.OrderByDescending(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)])
-                            .FirstOrDefault();
-                    }
-
-                    isWhite = !isWhite;
-                }
                 TotalTimeTaken = watch.ElapsedMilliseconds;
             });
         }
@@ -191,6 +236,81 @@ namespace UI.Pages
             string piece = uiboard[move.From.Row, move.From.Column];
             uiboard[move.From.Row, move.From.Column] = null;
             uiboard[move.To.Row, move.To.Column] = piece;
+
+            if (move.From.Row == 0 && move.From.Column == 4
+                && move.To.Row == 0 && move.To.Column == 6)
+            {
+                if (Board[move.To.Row, move.To.Column].Piece?.Name == "WK")
+                {
+                    uiboard[move.From.Row, move.From.Column + 1] = uiboard[move.From.Row, move.From.Column + 3];
+                    uiboard[move.From.Row, move.From.Column + 3] = null;
+                }
+            }
+
+            if (move.From.Row == 0 && move.From.Column == 4
+                                   && move.To.Row == 0 && move.To.Column == 2)
+            {
+                if (Board[move.To.Row, move.To.Column].Piece?.Name == "WK")
+                {
+                    uiboard[move.From.Row, move.From.Column - 1] = uiboard[move.From.Row, move.From.Column - 4];
+                    uiboard[move.From.Row, move.From.Column - 4] = null;
+                }
+            }
+        }
+
+        public void DisplayProjectedMovesOnUI(Node node, Move move)
+        {
+            bool isWhite = true;
+
+            while (node != null && move != null)
+            {
+                int moveId = ChessEngine.Engine.ChessEngine.GetMoveId(move);
+                ProjectedMoves.Add($"From:{move.From.Row}, {move.From.Column}->To:{move.To.Row}, {move.To.Column}->{node.Costs[moveId]}");
+                node = node.ChildNodes.FirstOrDefault(x => x.MoveId == moveId);
+
+                if (node == null)
+                {
+                    break;
+                }
+
+                if (isWhite)
+                {
+                    move = node.Moves?.Where(x => node.Costs.ContainsKey(ChessEngine.Engine.ChessEngine.GetMoveId(x)))
+                        ?.OrderBy(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)])
+                        .FirstOrDefault();
+                }
+                else
+                {
+                    move = node.Moves?.Where(x => node.Costs.ContainsKey(ChessEngine.Engine.ChessEngine.GetMoveId(x)))
+                        ?.OrderByDescending(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)])
+                        .FirstOrDefault();
+                }
+
+                isWhite = !isWhite;
+            }
+        }
+
+        public void UpdateGameInfo(Move move)
+        {
+            Game.MovesPlayed.Add(move);
+            Game.LastMoveForWhite = move;
+            Game.LastMovedPieceForWhite = Board[move.From.Row, move.From.Column].Piece;
+            Game.TotalMovesPlayed++;
+        }
+
+        public Move GetBestMove(Node node)
+        {
+            List<Move> moves = ChessEngine.Engine.ChessEngine.GetMoveTreeList(node);
+            
+            return null;
+        }
+
+        public Cell[,] GetBoardCopy()
+        {
+            string[,] boardAsStringArray = BoardHelper.GetBoardAsStringArray(Board);
+            Cell[,] board = BoardHelper.GetBoard(boardAsStringArray);
+
+            return null;
         }
     }
 }

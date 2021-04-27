@@ -9,5 +9,6 @@ namespace ChessEngine
         public string Name { get; set; }
         public bool IsWhite { get; set; }
         public int Value { get; set; }
+        public int MinValue { get; set; }
     }
 }

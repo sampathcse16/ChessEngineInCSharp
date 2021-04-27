@@ -475,6 +475,93 @@ namespace ChessEngine.Pieces
             return moves;
         }
 
+        public static bool IsOpponentKingIsInCheck(Cell[,] board, Cell cell)
+        {
+            if (cell.Piece.IsWhite)
+            {
+                return IsBlackKingIsInCheck(board, cell);
+            }
+
+            return IsWhiteKingIsInCheck(board, cell);
+        }
+
+
+        public static bool IsBlackKingIsInCheck(Cell[,] board, Cell cell)
+        {
+            int row = cell.Position.Row;
+            int column = cell.Position.Column;
+            int moveId = 0;
+            Piece piece = cell.Piece;
+
+            List<Move> moves = new List<Move>();
+
+            if (!cell.Piece.Name.EndsWith("P"))
+            {
+                return false;
+            }
+
+            if (row == 7 || row == 0)
+            {
+                return false;
+            }
+
+            if (column + 1 < 8)
+            {
+                if (board[row + 1, column + 1].Piece != null && !board[row + 1, column + 1].Piece.IsWhite && board[row + 1, column + 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (column - 1 >= 0)
+            {
+                if (board[row + 1, column - 1].Piece != null && !board[row + 1, column - 1].Piece.IsWhite && board[row + 1, column - 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsWhiteKingIsInCheck(Cell[,] board, Cell cell)
+        {
+            int row = cell.Position.Row;
+            int column = cell.Position.Column;
+            int moveId = 0;
+            Piece piece = cell.Piece;
+
+            List<Move> moves = new List<Move>();
+
+            if (!cell.Piece.Name.EndsWith("P"))
+            {
+                return false;
+            }
+
+            if (row == 0 || row == 7)
+            {
+                return false;
+            }
+
+            if (column + 1 < 8)
+            {
+                if (board[row - 1, column + 1].Piece != null && board[row - 1, column + 1].Piece.IsWhite && board[row - 1, column + 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (column - 1 >= 0)
+            {
+                if (board[row - 1, column - 1].Piece != null && board[row - 1, column - 1].Piece.IsWhite && board[row - 1, column - 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         #endregion
     }
 }

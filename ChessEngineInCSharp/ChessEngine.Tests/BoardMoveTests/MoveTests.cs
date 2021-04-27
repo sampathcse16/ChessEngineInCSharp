@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Text;
 using ChessEngine.Helpers;
 using ChessEngine.Pieces;
+using UI.Services;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,6 +18,8 @@ namespace ChessEngine.Tests.BoardMoveTests
         public MoveTests(ITestOutputHelper output)
         {
             this.output = output;
+            CacheService cacheService = new CacheService();
+            cacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
         }
 
         [Fact]
@@ -106,6 +110,54 @@ namespace ChessEngine.Tests.BoardMoveTests
             var elapsedMs = watch.ElapsedMilliseconds;
             output.WriteLine(elapsedMs.ToString());
             Assert.True(moves.Count == 20);
+        }
+
+        [Fact]
+        public void TestBoardMove4()
+        {
+            string[,] boardInStringFormat =
+            {
+                {"BR", "BN", "BB", "BQ", "BK", "BB", "BN", "BR"},
+                {"BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"},
+                {"WR", "WN", "WB", "WQ", "WK", "  ", "  ", "WR"}
+            };
+
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+
+            Move castleMove = new Move{From = new Position{Row = 0, Column = 4}, To=new Position{Row = 0, Column = 6}};
+            ChessEngine.Engine.ChessEngine.MakeMove(board, castleMove);
+            string afterMove = BoardHelper.GetBoardAsString(board);
+            ChessEngine.Engine.ChessEngine.RevertMove(board, castleMove, null);
+            string afterRevertMove = BoardHelper.GetBoardAsString(board);
+        }
+
+        [Fact]
+        public void TestBoardMove5()
+        {
+            string[,] boardInStringFormat =
+            {
+                {"BR", "BN", "BB", "BQ", "BK", "BB", "BN", "BR"},
+                {"BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"},
+                {"WR", "  ", "  ", "  ", "WK", "WB", "WN", "WR"}
+            };
+
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+
+            Move castleMove = new Move { From = new Position { Row = 0, Column = 4 }, To = new Position { Row = 0, Column = 2 } };
+            ChessEngine.Engine.ChessEngine.MakeMove(board, castleMove);
+            string afterMove = BoardHelper.GetBoardAsString(board);
+            ChessEngine.Engine.ChessEngine.RevertMove(board, castleMove, null);
+            string afterRevertMove = BoardHelper.GetBoardAsString(board);
         }
     }
 }

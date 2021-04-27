@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ChessEngine.Helpers;
 using UI.Services;
 
 namespace ChessEngine.Pieces
@@ -373,7 +374,11 @@ namespace ChessEngine.Pieces
 
             if (row + 1 < 8 && column + 2 < 8)
             {
-                if (board[row + 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row + 1, column + 2].Piece == null)
+                {
+
+                }
+                else if (board[row + 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column + 2));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -382,7 +387,11 @@ namespace ChessEngine.Pieces
 
             if (row + 1 < 8 && column - 2 >= 0)
             {
-                if (board[row + 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row + 1, column - 2].Piece == null)
+                {
+
+                }
+                else if (board[row + 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column - 2));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -391,7 +400,11 @@ namespace ChessEngine.Pieces
 
             if (row + 2 < 8 && column + 1 < 8)
             {
-                if (board[row + 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row + 2, column + 1].Piece == null)
+                {
+
+                }
+                else if (board[row + 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column + 1));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -400,7 +413,11 @@ namespace ChessEngine.Pieces
 
             if (row + 2 < 8 && column - 1 >= 0)
             {
-                if (board[row + 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row + 2, column - 1].Piece == null)
+                {
+
+                }
+                else if (board[row + 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + (column - 1));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -409,7 +426,11 @@ namespace ChessEngine.Pieces
 
             if (row - 1 >= 0 && column + 2 < 8)
             {
-                if (board[row - 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row - 1, column + 2].Piece == null)
+                {
+
+                }
+                else if (board[row - 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column + 2));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -418,7 +439,11 @@ namespace ChessEngine.Pieces
 
             if (row - 1 >= 0 && column - 2 >= 0)
             {
-                if (board[row - 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row - 1, column - 2].Piece == null)
+                {
+
+                }
+                else if (board[row - 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column - 2));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -427,7 +452,11 @@ namespace ChessEngine.Pieces
 
             if (row - 2 >= 0 && column + 1 < 8)
             {
-                if (board[row - 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row - 2, column + 1].Piece == null)
+                {
+
+                }
+                else if (board[row - 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column + 1));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -436,7 +465,11 @@ namespace ChessEngine.Pieces
 
             if (row - 2 >= 0 && column - 1 >= 0)
             {
-                if (board[row - 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
+                if (board[row - 2, column - 1].Piece == null)
+                {
+
+                }
+                else if (board[row - 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite)
                 {
                     moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 2) * 8 + (column - 1));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
@@ -444,6 +477,124 @@ namespace ChessEngine.Pieces
             }
 
             return moves;
+        }
+
+        public static bool IsOpponentKingIsInCheck(Cell[,] board, Cell cell)
+        {
+            int row = cell.Position.Row;
+            int column = cell.Position.Column;
+            int moveId = 0;
+            List<Move> moves = new List<Move>();
+
+            if (!cell.Piece.Name.EndsWith("N"))
+            {
+                return false;
+            }
+
+            if (row + 1 < 8 && column + 2 < 8)
+            {
+                if (board[row + 1, column + 2].Piece == null)
+                {
+
+                }
+                else if (board[row + 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite && board[row + 1, column + 2].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (row + 1 < 8 && column - 2 >= 0)
+            {
+                if (board[row + 1, column - 2].Piece == null)
+                {
+
+                }
+                else if (board[row + 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite && board[row + 1, column - 2].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (row + 2 < 8 && column + 1 < 8)
+            {
+                if (board[row + 2, column + 1].Piece == null)
+                {
+
+                }
+                else if (board[row + 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite && board[row + 2, column + 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (row + 2 < 8 && column - 1 >= 0)
+            {
+                if (board[row + 2, column - 1].Piece == null)
+                {
+
+                }
+                else if (board[row + 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite && board[row + 2, column - 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (row - 1 >= 0 && column + 2 < 8)
+            {
+                if (board[row - 1, column + 2].Piece == null)
+                {
+
+                }
+                else if (board[row - 1, column + 2].Piece.IsWhite != cell.Piece.IsWhite && board[row - 1, column + 2].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (row - 1 >= 0 && column - 2 >= 0)
+            {
+                if (board[row - 1, column - 2].Piece == null)
+                {
+
+                }
+                else if (board[row - 1, column - 2].Piece.IsWhite != cell.Piece.IsWhite && board[row - 1, column - 2].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (row - 2 >= 0 && column + 1 < 8)
+            {
+                if (board[row - 2, column + 1].Piece == null)
+                {
+
+                }
+                else if (board[row - 2, column + 1].Piece.IsWhite != cell.Piece.IsWhite && board[row - 2, column + 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            if (row - 2 >= 0 && column - 1 >= 0)
+            {
+                if (board[row - 2, column - 1].Piece == null)
+                {
+
+                }
+                else if (board[row - 2, column - 1].Piece.IsWhite != cell.Piece.IsWhite && board[row - 2, column - 1].Piece.Name[1] == 'K')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static List<Move> GetKnightMovesFromMagicBitboards(int square, ulong knightMask, ulong ownBlockers)
+        {
+            ulong knightBlockers = knightMask & ownBlockers;
+            ulong movesInBinary = KnightMovesHelper.KnightBlockerMovesToBinaryMoves[square, (int)((knightBlockers * KnightMovesHelper.MagicNumbersForKnight[square]) >> (56))];
+            return KnightMovesHelper.KnightMovesBinaryToActualMoves[(int)(movesInBinary % KnightMovesHelper.HashKeyForKnightMoves)] ?? new List<Move>();
         }
 
         #endregion

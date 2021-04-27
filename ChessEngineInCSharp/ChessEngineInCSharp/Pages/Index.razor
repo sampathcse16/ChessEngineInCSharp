@@ -21,6 +21,7 @@
 
 <button class="btn btn-success" @onclick="MakeComputerMove">Start</button>
 <span>Total Time Taken: @TotalTimeTaken</span>
+<div>@ChessEngine.Engine.ChessEngine.NodesEvaluated</div>
 
 @if (ProjectedMoves != null)
 {

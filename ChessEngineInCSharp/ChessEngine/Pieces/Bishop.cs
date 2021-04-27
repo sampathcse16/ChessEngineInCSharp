@@ -243,7 +243,7 @@ namespace ChessEngine.Pieces
 
             for (row = cell.Position.Row + 1; row < 8; row++)
             {
-                
+
                 column++;
 
                 if (column == 8)
@@ -452,6 +452,116 @@ namespace ChessEngine.Pieces
 
             return moves;
         }
+
+        public static bool IsOpponentKingIsInCheck(Cell[,] board, Cell cell)
+        {
+            int row = cell.Position.Row;
+            int column = cell.Position.Column;
+            int moveId = 0;
+            List<Move> moves = new List<Move>();
+
+            if (!cell.Piece.Name.EndsWith("B"))
+            {
+                return false;
+            }
+
+            for (row = cell.Position.Row + 1; row < 8; row++)
+            {
+
+                column++;
+
+                if (column == 8)
+                {
+                    break;
+                }
+
+                if (board[row, column].Piece != null)
+                {
+                    if (board[row, column].Piece.IsWhite != cell.Piece.IsWhite && board[row, column].Piece.Name[1] == 'K')
+                    {
+                        return true;
+                    }
+
+                    break;
+                }
+            }
+
+            column = cell.Position.Column;
+
+            for (row = cell.Position.Row + 1; row < 8; row++)
+            {
+                column--;
+
+                if (column == -1)
+                {
+                    break;
+                }
+
+                if (board[row, column].Piece != null)
+                {
+                    if (board[row, column].Piece.IsWhite != cell.Piece.IsWhite && board[row, column].Piece.Name[1] == 'K')
+                    {
+                        return true;
+                    }
+
+                    break;
+                }
+            }
+
+            column = cell.Position.Column;
+
+            for (row = cell.Position.Row - 1; row >= 0; row--)
+            {
+                column++;
+
+                if (column == 8)
+                {
+                    break;
+                }
+
+                if (board[row, column].Piece != null)
+                {
+                    if (board[row, column].Piece.IsWhite != cell.Piece.IsWhite && board[row, column].Piece.Name[1] == 'K')
+                    {
+                        return true;
+                    }
+
+                    break;
+                }
+            }
+
+            column = cell.Position.Column;
+
+            for (row = cell.Position.Row - 1; row >= 0; row--)
+            {
+                column--;
+
+                if (column == -1)
+                {
+                    break;
+                }
+
+                if (board[row, column].Piece != null)
+                {
+                    if (board[row, column].Piece.IsWhite != cell.Piece.IsWhite && board[row, column].Piece.Name[1] == 'K')
+                    {
+                        return true;
+                    }
+
+                    break;
+                }
+            }
+
+            return false;
+        }
+
+        public static List<Move> GetBishopMovesFromMagicBitboards(int square, ulong bishopMask, ulong occupancy, ulong ownBlockers)
+        {
+            ulong bishopBlockers = bishopMask & occupancy;
+            ulong movesInBinary = BishopMovesHelper.BishopBlockerMovesToBinaryMoves[square, (int)((bishopBlockers * BishopMovesHelper.MagicNumbersForBishop[square]) >> (50))] & ~ownBlockers;
+            return BishopMovesHelper.BishopMovesBinaryToActualMoves[(int)(movesInBinary % BishopMovesHelper.HashKeyForBishopMoves)] ?? new List<Move>();
+        }
+
         #endregion
     }
 }

@@ -4,20 +4,38 @@ namespace ChessEngine.Helpers
 {
     public class BoardHelper
     {
+        private static ulong one = 1;
+
         public static Dictionary<string, int> PieceValueDictionary = new Dictionary<string, int>
         {
-            {"WP",100},
-            {"WB",300},
-            {"WN",300},
-            {"WR",500},
-            {"WQ",900},
-            {"WK",10000},
-            {"BP",100},
-            {"BB",300},
-            {"BN",300},
-            {"BR",500},
-            {"BQ",900},
-            {"BK",10000}
+            {"WP",1000},
+            {"WB",3000},
+            {"WN",3000},
+            {"WR",5000},
+            {"WQ",9000},
+            {"WK",100000},
+            {"BP",1000},
+            {"BB",3000},
+            {"BN",3000},
+            {"BR",5000},
+            {"BQ",9000},
+            {"BK",100000}
+        };
+
+        public static Dictionary<string, int> PieceMinValueDictionary = new Dictionary<string, int>
+        {
+            {"WP",1},
+            {"WB",3},
+            {"WN",3},
+            {"WR",5},
+            {"WQ",9},
+            {"WK",-10000},
+            {"BP",1},
+            {"BB",3},
+            {"BN",3},
+            {"BR",5},
+            {"BQ",9},
+            {"BK",-10000}
         };
 
         public static Dictionary<string, int> PieceIdDictionary = new Dictionary<string, int>
@@ -65,13 +83,39 @@ namespace ChessEngine.Helpers
                     if (!string.IsNullOrEmpty(cellString))
                     {
                         string pieceName = cellString.Trim();
-                        Piece piece = new Piece { Name = pieceName, Value = PieceValueDictionary[pieceName], IsWhite = pieceName.StartsWith("W") };
+                        Piece piece = new Piece
+                        {
+                            Name = pieceName,
+                            Value = PieceValueDictionary[pieceName],
+                            MinValue = PieceMinValueDictionary[pieceName],
+                            IsWhite = pieceName.StartsWith("W")
+                        };
                         board[row, column].Piece = piece;
                     }
                 }
             }
 
             return board;
+        }
+
+        public static ulong GetOccupancy(Cell[,] board)
+        {
+            ulong occupancy = 0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int square = i * 8 + j;
+
+                    if (board[i, j].Piece != null)
+                    {
+                        occupancy = occupancy | one << square;
+                    }
+                }
+            }
+
+            return occupancy;
         }
 
         public static string[,] GetInitialPositionOfBoardInStringFormat()
@@ -125,6 +169,24 @@ namespace ChessEngine.Helpers
             }
 
             return boardAsString;
+        }
+
+        public static string[,] GetBoardAsStringArray(Cell[,] board)
+        {
+            string[,] boardAsStringArray = new string[8, 8];
+            int maxRowNumber = 7;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int row = maxRowNumber - i;
+                    int column = j;
+                    boardAsStringArray[i, j] = board[row, column].Piece?.Name ?? "  ";
+                }
+            }
+
+            return boardAsStringArray;
         }
     }
 }
