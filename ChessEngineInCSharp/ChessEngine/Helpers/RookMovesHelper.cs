@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ChessEngine.Pieces;
 
@@ -13,14 +14,16 @@ namespace ChessEngine.Helpers
 
         public static ulong[,] AllPossibleRookMovesFromAllSquares { get; set; }
 
-        public static List<Move>[] RookMovesBinaryToActualMoves { get; set; }
+        public static List<Move>[,] BinaryToActualMoves { get; set; }
+
+        public static HashSet<ulong>[] AllBinaryMoves { get; set; }
 
         public static ulong[,] RookBlockerMovesToBinaryMoves { get; set; }
         public static Dictionary<ulong, ulong>[] RookBlockerMovesToBinaryMovesDictionary { get; set; }
 
         public static ulong HashKeyForRookMoves = 649579;
 
-        public static ulong[] MagicNumbersForRook =
+        public static ulong[] MagicNumbersForBlockers =
         {
              331014710050949120
             ,2454466332406583296
@@ -88,6 +91,74 @@ namespace ChessEngine.Helpers
             ,1101660162114
         };
 
+        public static ulong[] MagicNumbersForActualMoves =
+        {
+            2885121732641216
+            ,653602920289543170
+            ,298645293887652740
+            ,1734167340104581154
+            ,579275850501915668
+            ,151433540221797396
+            ,225461484279341058
+            ,2379169585707516417
+            ,13524549222584448
+            ,37304230842730497
+            ,576478344791597168
+            ,45053607066337539
+            ,72627149785273410
+            ,1319416172118146
+            ,216467452580628494
+            ,6922327383896228961
+            ,5200531876403494920
+            ,2887089593109217344
+            ,5769129279644254529
+            ,607986396372142216
+            ,5926741593567531016
+            ,4900479895398121474
+            ,2306134388391350433
+            ,76843562600366145
+            ,148694793609544832
+            ,146648876298801600
+            ,2251903161384976
+            ,2307813343445913616
+            ,4506077295542296
+            ,290483846708920585
+            ,1008824115211075585
+            ,220188479852705
+            ,144240257810825248
+            ,4611743747085961248
+            ,3464411622737510422
+            ,2260630401712432
+            ,4612814134587691025
+            ,18085319211483266
+            ,149886249753118985
+            ,2337403463481164353
+            ,36064050113781824
+            ,11270028563317472
+            ,2882374714402213920
+            ,2251868835164164
+            ,720611133375057923
+            ,567366455133316
+            ,216182696242884626
+            ,288670945342933505
+            ,333267610718179396
+            ,81702511177631756
+            ,288529859540813832
+            ,5665822341595907
+            ,9580079390941346
+            ,436853836847648796
+            ,578714751146918023
+            ,167068593901539337
+            ,4776209244045738785
+            ,145102550062989331
+            ,146581462584989713
+            ,27596642412957707
+            ,216225576402095241
+            ,36606040645698121
+            ,4756082708357318661
+            ,1126179115452426
+        };
+
         public static void UpdateAllPossibleMovesFromAllSquares()
         {
             AllPossibleRookMovesFromAllSquares = new ulong[8, 8];
@@ -133,8 +204,9 @@ namespace ChessEngine.Helpers
         {
 
             RookBlockerMovesToBinaryMoves = new ulong[64, 1 << 14];
-            RookMovesBinaryToActualMoves = new List<Move>[HashKeyForRookMoves];
+            BinaryToActualMoves = new List<Move>[64, 1 << 12];
             RookBlockerMovesToBinaryMovesDictionary = new Dictionary<ulong, ulong>[64];
+            AllBinaryMoves = new HashSet<ulong>[64];
 
             for (int i = 0; i < 8; i++)
             {
@@ -142,6 +214,7 @@ namespace ChessEngine.Helpers
                 {
                     int square = i * 8 + j;
                     RookBlockerMovesToBinaryMovesDictionary[square] = new Dictionary<ulong, ulong>();
+                    AllBinaryMoves[square] = new HashSet<ulong>();
                     ulong allRookMoves = AllPossibleRookMovesFromAllSquares[i, j];
                     string[,] boardInStringArray = MovesHelper.GetBinaryToBoardInStringArray(allRookMoves);
                     boardInStringArray[7 - i, j] = "WR";
@@ -179,10 +252,79 @@ namespace ChessEngine.Helpers
             List<Move> moves = Rook.GetMovesFromCache(board, cell);
             ulong binaryRookMoves = 0;
 
-            if (rookBlockers == 8 && square == 27)
+            foreach (Move move in moves)
             {
-
+                int currentSquare = move.To.Row * 8 + move.To.Column;
+                binaryRookMoves = binaryRookMoves | one << currentSquare;
             }
+
+            int index = (int)((binaryRookMoves * MagicNumbersForActualMoves[square]) >> (64 - 12));
+            BinaryToActualMoves[square, index] = moves;
+            AllBinaryMoves[square].Add(binaryRookMoves);
+
+            List<Move> killerMoves = moves.Where(x => board[x.To.Row, x.To.Column].Piece != null).ToList();
+            ulong killerBinaryRookMoves = 0;
+
+            foreach (Move move in killerMoves)
+            {
+                int currentSquare = move.To.Row * 8 + move.To.Column;
+                killerBinaryRookMoves = killerBinaryRookMoves | one << currentSquare;
+            }
+
+            index = (int)((killerBinaryRookMoves * MagicNumbersForActualMoves[square]) >> (64 - 12));
+            BinaryToActualMoves[square, index] = killerMoves;
+            AllBinaryMoves[square].Add(killerBinaryRookMoves);
+
+            int indexForBlocker = (int)((rookBlockers * MagicNumbersForBlockers[square]) >> (64 - 14));
+
+            RookBlockerMovesToBinaryMoves[square, indexForBlocker] = binaryRookMoves;
+            RookBlockerMovesToBinaryMovesDictionary[square][rookBlockers] = binaryRookMoves;
+        }
+
+        public static void UpdateAllPossibleMovesForOwnBlockers()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int square = i * 8 + j;
+                    AllBinaryMoves[square] = new HashSet<ulong>();
+                    ulong allRookMoves = AllPossibleRookMovesFromAllSquares[i, j];
+                    string[,] boardInStringArray = MovesHelper.GetBinaryToBoardInStringArray(allRookMoves, "WP");
+                    boardInStringArray[7 - i, j] = "WR";
+                    Cell[,] board = BoardHelper.GetBoard(boardInStringArray);
+                    GenerateOwnBlockers(allRookMoves, 0, i, j, board);
+                }
+            }
+        }
+
+        public static void GenerateOwnBlockers(ulong allRookMoves, int index, int row, int column, Cell[,] board)
+        {
+            if (index > 63)
+            {
+                UpdateActualMovesForOwnBlockers(allRookMoves, row, column, board);
+                return;
+            }
+            int currentRow = (index / 8);
+            int currentColumn = index % 8;
+
+            GenerateOwnBlockers(allRookMoves, index + 1, row, column, board);
+
+            if ((allRookMoves & (one << index)) > 0)
+            {
+                Piece piece = board[currentRow, currentColumn].Piece;
+                board[currentRow, currentColumn].Piece = null;
+                GenerateOwnBlockers(allRookMoves & ~(one << index), index + 1, row, column, board);
+                board[currentRow, currentColumn].Piece = piece;
+            }
+        }
+
+        public static void UpdateActualMovesForOwnBlockers(ulong rookBlockers, int row, int column, Cell[,] board)
+        {
+            int square = row * 8 + column;
+            Cell cell = board[row, column];
+            List<Move> moves = Rook.GetMovesFromCache(board, cell);
+            ulong binaryRookMoves = 0;
 
             foreach (Move move in moves)
             {
@@ -190,18 +332,9 @@ namespace ChessEngine.Helpers
                 binaryRookMoves = binaryRookMoves | one << currentSquare;
             }
 
-            int index = (int)(binaryRookMoves % HashKeyForRookMoves);
-            RookMovesBinaryToActualMoves[index] = moves;
-
-            int indexForBlocker = (int)((rookBlockers * MagicNumbersForRook[square]) >> (64 - 14));
-
-            if (square == 27 && indexForBlocker == 256)
-            {
-
-            }
-
-            RookBlockerMovesToBinaryMoves[square, indexForBlocker] = binaryRookMoves;
-            RookBlockerMovesToBinaryMovesDictionary[square][rookBlockers] = binaryRookMoves;
+            int index = (int)((binaryRookMoves * MagicNumbersForActualMoves[square]) >> (64 - 12));
+            BinaryToActualMoves[square, index] = moves;
+            AllBinaryMoves[square].Add(binaryRookMoves);
         }
     }
 }

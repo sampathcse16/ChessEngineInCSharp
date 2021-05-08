@@ -264,10 +264,9 @@ namespace ChessEngine.Tests.PieceMoveTests
         [Fact]
         public void BishopTests12()
         {
-            //649579
-            BishopMovesHelper.BishopMovesBinaryToActualMoves = new List<Move>[BishopMovesHelper.HashKeyForBishopMoves];
             BishopMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             BishopMovesHelper.UpdateAllPossibleMovesForAllBlockers();
+            BishopMovesHelper.UpdateAllPossibleMovesForOwnBlockers();
 
             string[,] boardInStringFormat =
             {
@@ -275,7 +274,7 @@ namespace ChessEngine.Tests.PieceMoveTests
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "WB", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "WP", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
@@ -286,38 +285,48 @@ namespace ChessEngine.Tests.PieceMoveTests
             int column = 3;
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
             int square = row * 8 + column;
-            ulong bishopMask = BishopMovesHelper.AllPossibleBishopMovesFromAllSquares[row, column];
+            ulong bishopMask = BishopMovesHelper.AllPossibleMovesFromAllSquares[row, column];
             ulong occupancy = BoardHelper.GetOccupancy(board);
-            ulong ownBlockers = one << 3;
-            ownBlockers = ownBlockers | one << 59;
+            ulong ownBlockers = one << 26;
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            
-            //for (ulong i = 1; i < 1000000; i++)
-            //{
-            //    bool found = true;
-            //    HashSet<int> indexes = new HashSet<int>();
 
-            //    foreach (ulong binaryMove in BishopMovesHelper.BishopAllBinaryMoves)
-            //    {
-            //        int index = (int)(binaryMove % i);
+            for (int i = 0; i < 64; i++)
+            {
+                Random random = new Random();
+                bool found = false;
+                ulong magicNumber = 0;
 
-            //        if (indexes.Contains(index))
-            //        {
-            //            found = false;
-            //            break;
-            //        }
-            //        else
-            //        {
-            //            indexes.Add(index);
-            //        }
-            //    }
+                while (!found)
+                {
+                    found = true;
+                    HashSet<int> indexes = new HashSet<int>();
+                    magicNumber = (ulong)(MovesHelper.LongRandom(0, Int64.MaxValue, random)
+                                          & MovesHelper.LongRandom(0, Int64.MaxValue, random)
+                                          & MovesHelper.LongRandom(0, Int64.MaxValue, random));
 
-            //    if (found)
-            //    {
+                    foreach (ulong binaryMove in BishopMovesHelper.AllBinaryMoves[i])
+                    {
+                        int index = (int)((binaryMove * magicNumber) >> (64 - 12));
 
-            //    }
-            //}
-            
+                        if (indexes.Contains(index))
+                        {
+                            found = false;
+                            break;
+                        }
+                        else
+                        {
+                            indexes.Add(index);
+                        }
+                    }
+
+                    if (found)
+                    {
+                        output.WriteLine(magicNumber.ToString());
+                        break;
+                    }
+                }
+            }
+
             //for (int i = 0; i < 64; i++)
             //{
             //    Dictionary<ulong, ulong> blockerMovesToBinaryMoves = BishopMovesHelper.BishopBlockerMovesToBinaryMovesDictionary[i];
@@ -358,7 +367,7 @@ namespace ChessEngine.Tests.PieceMoveTests
 
             for (int i = 0; i < 10000000; i++)
             {
-                List<Move> moves = Bishop.GetBishopMovesFromMagicBitboards(square, bishopMask, occupancy, ownBlockers);
+                List<Move> moves = Bishop.GetMovesUsingMagicBitboards(square, bishopMask, occupancy, ownBlockers);
             }
 
             watch.Stop();

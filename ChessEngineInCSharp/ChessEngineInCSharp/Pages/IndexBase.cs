@@ -86,8 +86,10 @@ namespace UI.Pages
 
             BishopMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             BishopMovesHelper.UpdateAllPossibleMovesForAllBlockers();
+            BishopMovesHelper.UpdateAllPossibleMovesForOwnBlockers();
             RookMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             RookMovesHelper.UpdateAllPossibleMovesForAllBlockers();
+            RookMovesHelper.UpdateAllPossibleMovesForOwnBlockers();
             KnightMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             KnightMovesHelper.UpdateAllPossibleMovesForAllBlockers();
         }
@@ -213,6 +215,7 @@ namespace UI.Pages
 
                 Node node = new Node();
                 ChessEngine.Engine.ChessEngine.NodesEvaluated = 0;
+                ChessEngine.Engine.ChessEngine.CachedMovesCounter = 0;
                 ChessEngine.Engine.ChessEngine.UpdateOccupancies(Board);
                 ChessEngine.Engine.ChessEngine.GetBestMoveUsingAlphaBetaVersion1(node, Board, depth, Int32.MinValue, Int32.MaxValue, true, zorbistKey, 0, null, null, new Stack<Move>(), new HashSet<int>(), new HashSet<int>());
 

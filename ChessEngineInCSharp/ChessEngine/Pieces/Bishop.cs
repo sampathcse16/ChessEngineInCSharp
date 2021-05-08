@@ -555,11 +555,18 @@ namespace ChessEngine.Pieces
             return false;
         }
 
-        public static List<Move> GetBishopMovesFromMagicBitboards(int square, ulong bishopMask, ulong occupancy, ulong ownBlockers)
+        public static List<Move> GetMovesUsingMagicBitboards(int square, ulong bishopMask, ulong occupancy, ulong ownBlockers)
         {
             ulong bishopBlockers = bishopMask & occupancy;
-            ulong movesInBinary = BishopMovesHelper.BishopBlockerMovesToBinaryMoves[square, (int)((bishopBlockers * BishopMovesHelper.MagicNumbersForBishop[square]) >> (50))] & ~ownBlockers;
-            return BishopMovesHelper.BishopMovesBinaryToActualMoves[(int)(movesInBinary % BishopMovesHelper.HashKeyForBishopMoves)] ?? new List<Move>();
+            ulong movesInBinary = BishopMovesHelper.BlockerMovesToBinaryMoves[square, (int)((bishopBlockers * BishopMovesHelper.MagicNumbersForBlockers[square]) >> (50))] & ~ownBlockers;
+            return BishopMovesHelper.BinaryToActualMoves[square, (int)((movesInBinary * BishopMovesHelper.MagicNumbersForActualMoves[square]) >> 52)] ?? new List<Move>();
+        }
+        
+        public static List<Move> GetKillingMovesUsingMagicBitboards(int square, ulong rookMask, ulong occupancy, ulong ownBlockers)
+        {
+            ulong rookBlockers = rookMask & occupancy;
+            ulong movesInBinary = (BishopMovesHelper.BlockerMovesToBinaryMoves[square, (int)((rookBlockers * BishopMovesHelper.MagicNumbersForBlockers[square]) >> (50))] & ~ownBlockers) & occupancy;
+            return BishopMovesHelper.BinaryToActualMoves[square, (int)((movesInBinary * BishopMovesHelper.MagicNumbersForActualMoves[square]) >> 52)] ?? new List<Move>();
         }
 
         #endregion

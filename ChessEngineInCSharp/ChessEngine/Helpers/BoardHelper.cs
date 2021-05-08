@@ -46,12 +46,12 @@ namespace ChessEngine.Helpers
             {"WR",4},
             {"WQ",5},
             {"WK",6},
-            {"BP",1},
-            {"BB",2},
-            {"BN",3},
-            {"BR",4},
-            {"BQ",5},
-            {"BK",6}
+            {"BP",7},
+            {"BB",8},
+            {"BN",9},
+            {"BR",10},
+            {"BQ",11},
+            {"BK",12}
         };
 
         public static Cell[,] GetBoard(string[,] boardInStringFormat)
@@ -85,6 +85,7 @@ namespace ChessEngine.Helpers
                         string pieceName = cellString.Trim();
                         Piece piece = new Piece
                         {
+                            Id = PieceIdDictionary[pieceName],
                             Name = pieceName,
                             Value = PieceValueDictionary[pieceName],
                             MinValue = PieceMinValueDictionary[pieceName],

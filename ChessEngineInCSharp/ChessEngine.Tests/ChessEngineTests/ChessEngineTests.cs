@@ -694,5 +694,80 @@ namespace ChessEngine.Tests.ChessEngineTests
             _output.WriteLine(ChessEngine.Engine.ChessEngine.GetMoveTree(backupNode));
             Assert.True(cost > 50000);
         }
+
+        [Fact]
+        public void ChessEngineTests11()
+        {
+            string[,] boardInStringFormat =
+            {
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "BR"},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "BP", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "BB"},
+                {"  ", "  ", "  ", "  ", "  ", "WN", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "WQ"}
+            };
+
+            int depth = 6;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
+            _cacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
+            ChessEngine.Engine.ChessEngine.AllPossibleMoves = CacheService.AllPossibleMoves;
+            ZorbistData.FillZorbistData(board);
+            long zorbistKey = ZorbistData.GetZorbistKeyForCurrentBoardPosition(board);
+            ChessEngine.Engine.ChessEngine.InitializeTranspositionTables(depth);
+            Game.MovesPlayed = new List<Move>();
+            //Node node = new Node();
+            //ChessEngine.Engine.ChessEngine.NodesEvaluated = 0;
+            //ChessEngine.Engine.ChessEngine.GetBestMoveUsingMinMax(node, board, 2, true, zorbistKey, 0, null, null);
+
+            Node node = new Node { IsWhite = true };
+            ChessEngine.Engine.ChessEngine.NodesEvaluated = 0;
+            ChessEngine.Engine.ChessEngine.GetBestMoveUsingAlphaBetaVersion1(node, board, 0, Int32.MinValue, Int32.MaxValue, true, zorbistKey, -500, null, null, new Stack<Move>(), new HashSet<int>(), new HashSet<int>());
+            Node backupNode = node;
+            Move move = node.Moves.Where(x => node.Costs.ContainsKey(ChessEngine.Engine.ChessEngine.GetMoveId(x)))
+                .OrderByDescending(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)]).FirstOrDefault();
+            int firstmoveId = ChessEngine.Engine.ChessEngine.GetMoveId(move);
+            int cost = node.Costs[firstmoveId];
+
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            _output.WriteLine(elapsedMs.ToString());
+            _output.WriteLine(ChessEngine.Engine.ChessEngine.NodesEvaluated.ToString());
+            bool isWhite = true;
+
+            while (node != null && move != null)
+            {
+                int moveId = ChessEngine.Engine.ChessEngine.GetMoveId(move);
+                _output.WriteLine($"From:{move.From.Row}, {move.From.Column}->To:{move.To.Row}, {move.To.Column}->{node.Costs[moveId]}");
+                node = node.ChildNodes.FirstOrDefault(x => x.MoveId == moveId);
+
+                if (node == null)
+                {
+                    break;
+                }
+
+                if (isWhite)
+                {
+                    move = node.Moves?.Where(x => node.Costs.ContainsKey(ChessEngine.Engine.ChessEngine.GetMoveId(x)))
+                        ?.OrderBy(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)])
+                        .FirstOrDefault();
+                }
+                else
+                {
+                    move = node.Moves?.Where(x => node.Costs.ContainsKey(ChessEngine.Engine.ChessEngine.GetMoveId(x)))
+                        ?.OrderByDescending(x => node.Costs[ChessEngine.Engine.ChessEngine.GetMoveId(x)])
+                        .FirstOrDefault();
+                }
+
+                isWhite = !isWhite;
+            }
+
+            _output.WriteLine("######################################################");
+            _output.WriteLine(ChessEngine.Engine.ChessEngine.GetMoveTree(backupNode));
+            Assert.True(cost > 50000);
+        }
     }
 }

@@ -4,4 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Helpers\BoardHelper.cs~RF22f19a3.TMP" />
+  </ItemGroup>
+
 </Project>

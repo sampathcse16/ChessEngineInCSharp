@@ -262,9 +262,9 @@ namespace ChessEngine.Tests.PieceMoveTests
         }
 
         [Fact]
-        public void KnightTests6()
+        public void KingTests11()
         {
-            KingMovesHelper.KingMovesBinaryToActualMoves = new List<Move>[KingMovesHelper.HashKeyForKingMoves];
+            KingMovesHelper.BinaryToActualMoves = new List<Move>[64, 1 << 8];
             KingMovesHelper.UpdateAllPossibleKingMovesFromAllSquares();
             KingMovesHelper.UpdateAllPossibleKingMovesForAllBlockers();
 
@@ -285,34 +285,45 @@ namespace ChessEngine.Tests.PieceMoveTests
             int column = 3;
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
             int square = row * 8 + column;
-            ulong kingMask = KingMovesHelper.AllPossibleKingMovesFromAllSquares[row, column];
+            ulong kingMask = KingMovesHelper.AllPossibleMovesFromAllSquares[row, column];
             ulong occupancy = BoardHelper.GetOccupancy(board);
             ulong ownBlockers = 0;//one << 46;
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            //for (ulong i = 1; i < 1000000; i++)
+            //for (int i = 0; i < 64; i++)
             //{
-            //    bool found = true;
-            //    HashSet<int> indexes = new HashSet<int>();
+            //    Random random = new Random();
+            //    bool found = false;
+            //    ulong magicNumber = 0;
 
-            //    foreach (ulong binaryMove in KingMovesHelper.KingAllBinaryMoves)
+            //    while (!found)
             //    {
-            //        int index = (int)(binaryMove % i);
+            //        found = true;
+            //        HashSet<int> indexes = new HashSet<int>();
+            //        magicNumber = (ulong)(MovesHelper.LongRandom(0, Int64.MaxValue, random)
+            //                              & MovesHelper.LongRandom(0, Int64.MaxValue, random)
+            //                              & MovesHelper.LongRandom(0, Int64.MaxValue, random));
 
-            //        if (indexes.Contains(index))
+            //        foreach (ulong binaryMove in KingMovesHelper.AllBinaryMoves[i])
             //        {
-            //            found = false;
+            //            int index = (int)((binaryMove * magicNumber) >> (64 - 8));
+
+            //            if (indexes.Contains(index))
+            //            {
+            //                found = false;
+            //                break;
+            //            }
+            //            else
+            //            {
+            //                indexes.Add(index);
+            //            }
+            //        }
+
+            //        if (found)
+            //        {
+            //            output.WriteLine(magicNumber.ToString());
             //            break;
             //        }
-            //        else
-            //        {
-            //            indexes.Add(index);
-            //        }
-            //    }
-
-            //    if (found)
-            //    {
-
             //    }
             //}
 
@@ -357,7 +368,7 @@ namespace ChessEngine.Tests.PieceMoveTests
 
             for (int i = 0; i < 10000000; i++)
             {
-                List<Move> moves = King.GetKingMovesFromMagicBitboards(square, kingMask, ownBlockers);
+                List<Move> moves = King.GetMovesUsingMagicBitboards(square, kingMask, ownBlockers);
             }
 
             watch.Stop();

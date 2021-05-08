@@ -132,55 +132,86 @@ namespace ChessEngine.Tests.PieceMoveTests
         [Fact]
         public void KnightTests6()
         {
-            KnightMovesHelper.KnightMovesBinaryToActualMoves = new List<Move>[KnightMovesHelper.HashKeyForKnightMoves];
             KnightMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             KnightMovesHelper.UpdateAllPossibleMovesForAllBlockers();
 
             string[,] boardInStringFormat =
             {
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "WN"},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "BK", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"BR", "BN", "BB", "BQ", "BK", "BB", "BN", "BR"},
+                {"BP", "BP", "BP", "BP", "BP", "BP", "BP", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
+                {"  ", "  ", "  ", "WP", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "  ", "  ", "  ", "BP", "  ", "BP"},
+                {"WP", "WP", "WP", "  ", "WP", "WP", "WP", "WP"},
+                {"WR", "WN", "WB", "WQ", "WK", "WB", "WN", "WR"}
             };
 
             ulong one = 1;
-            int row = 7;
-            int column = 7;
+            int row = 0;
+            int column = 6;
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
             int square = row * 8 + column;
-            ulong rookMask = KnightMovesHelper.AllPossibleKnightMovesFromAllSquares[row, column];
+            ulong rookMask = KnightMovesHelper.AllPossibleMovesFromAllSquares[row, column];
             ulong occupancy = BoardHelper.GetOccupancy(board);
-            ulong ownBlockers = 0;//one << 46;
+            ulong ownBlockers = one << 0;
+             ownBlockers = ownBlockers | one << 1;
+            ownBlockers = ownBlockers | one << 2;
+            ownBlockers = ownBlockers | one << 3;
+            ownBlockers = ownBlockers | one << 4;
+            ownBlockers = ownBlockers | one << 5;
+            ownBlockers = ownBlockers | one << 6;
+            ownBlockers = ownBlockers | one << 7;
+            ownBlockers = ownBlockers | one << 8;
+            ownBlockers = ownBlockers | one << 9;
+            ownBlockers = ownBlockers | one << 10;
+            ownBlockers = ownBlockers | one << 12;
+            ownBlockers = ownBlockers | one << 13;
+            ownBlockers = ownBlockers | one << 14;
+            ownBlockers = ownBlockers | one << 15;
+            ownBlockers = ownBlockers | one << 27;
+
+            ulong opponentBlockers = 0;
+
+            opponentBlockers = opponentBlockers | one << 21;
+            opponentBlockers = opponentBlockers | one << 23;
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            //for (ulong i = 1; i < 1000000; i++)
+
+            //for (int i = 0; i < 64; i++)
             //{
-            //    bool found = true;
-            //    HashSet<int> indexes = new HashSet<int>();
+            //    Random random = new Random();
+            //    bool found = false;
+            //    ulong magicNumber = 0;
 
-            //    foreach (ulong binaryMove in KnightMovesHelper.KnightAllBinaryMoves)
+            //    while (!found)
             //    {
-            //        int index = (int)(binaryMove % i);
+            //        found = true;
+            //        HashSet<int> indexes = new HashSet<int>();
+            //        magicNumber = (ulong)(MovesHelper.LongRandom(0, Int64.MaxValue, random)
+            //                              & MovesHelper.LongRandom(0, Int64.MaxValue, random)
+            //                              & MovesHelper.LongRandom(0, Int64.MaxValue, random));
 
-            //        if (indexes.Contains(index))
+            //        foreach (ulong binaryMove in KnightMovesHelper.AllBinaryMoves[i])
             //        {
-            //            found = false;
+            //            int index = (int)((binaryMove * magicNumber) >> (64 - 8));
+
+            //            if (indexes.Contains(index))
+            //            {
+            //                found = false;
+            //                break;
+            //            }
+            //            else
+            //            {
+            //                indexes.Add(index);
+            //            }
+            //        }
+
+            //        if (found)
+            //        {
+            //            output.WriteLine(magicNumber.ToString());
             //            break;
             //        }
-            //        else
-            //        {
-            //            indexes.Add(index);
-            //        }
-            //    }
-
-            //    if (found)
-            //    {
-
             //    }
             //}
 
@@ -225,7 +256,7 @@ namespace ChessEngine.Tests.PieceMoveTests
 
             for (int i = 0; i < 10000000; i++)
             {
-                List<Move> moves = Knight.GetKnightMovesFromMagicBitboards(square, rookMask,  ownBlockers);
+                List<Move> moves = Knight.GetKillingMovesFromMagicBitboards(square, rookMask,  ownBlockers, opponentBlockers);
             }
 
             watch.Stop();

@@ -13,19 +13,19 @@ namespace ChessEngine.Helpers
 
         static int maxRowNumber = 7;
 
-        public static ulong[,] AllPossibleBishopMovesFromAllSquares { get; set; }
+        public static ulong[,] AllPossibleMovesFromAllSquares { get; set; }
 
-        public static List<Move>[] BishopMovesBinaryToActualMoves { get; set; }
+        public static List<Move>[,] BinaryToActualMoves { get; set; }
 
-        public static ulong[,] BishopBlockerMovesToBinaryMoves { get; set; }
+        public static ulong[,] BlockerMovesToBinaryMoves { get; set; }
 
-        public static HashSet<ulong> BishopAllBinaryMoves { get; set; }
+        public static HashSet<ulong>[] AllBinaryMoves { get; set; }
 
         public static Dictionary<ulong, ulong>[] BishopBlockerMovesToBinaryMovesDictionary { get; set; }
 
         public static ulong HashKeyForBishopMoves = 59351;
 
-        public static ulong[] MagicNumbersForBishop =
+        public static ulong[] MagicNumbersForBlockers =
         {
             9007233631813760
             ,5478774082501640244
@@ -93,9 +93,77 @@ namespace ChessEngine.Helpers
             ,10445969305744
         };
 
+        public static ulong[] MagicNumbersForActualMoves =
+        {
+            82195126146827329
+            ,432556705626460696
+            ,288450278779535426
+            ,1134704627681317
+            ,36310297832849448
+            ,4611721271588159492
+            ,55310013381492738
+            ,90092067238182914
+            ,9288742984484865
+            ,1158647765878726821
+            ,185984866276380689
+            ,36188228352754176
+            ,4909334484072579
+            ,2958196735715049616
+            ,5336908497177084496
+            ,432392861632331780
+            ,144396663253925891
+            ,1157460426120779778
+            ,738660742814794305
+            ,72064960108626177
+            ,450518309592400480
+            ,2328396208912992789
+            ,36372396164272130
+            ,580680115816970
+            ,1729946312285358089
+            ,74313791933915457
+            ,2269426496094742
+            ,4630830715964494343
+            ,6350431716359931972
+            ,291046242820032520
+            ,2324000622066008336
+            ,2522315133905076356
+            ,47292473373917190
+            ,2307252893503194375
+            ,2377909417598275587
+            ,565424064333842
+            ,1155182109139141123
+            ,14636836634755360
+            ,653408978894065729
+            ,144397358839365736
+            ,72347899752644681
+            ,145273385189521
+            ,563774872355854
+            ,72062578415011844
+            ,577024324255352902
+            ,4647733524374241349
+            ,91765550230880772
+            ,22676328920653988
+            ,1126177473954848
+            ,18085351663075330
+            ,283678299918408
+            ,1729382259058873420
+            ,18650191125102594
+            ,9579117101058049
+            ,229690316042684417
+            ,218495572101825570
+            ,48379053236224
+            ,35201552025156
+            ,24189797993728
+            ,9007199290523662
+            ,576462128974790721
+            ,2691625939935520
+            ,598983561407644424
+            ,72075740811694081
+        };
+
         public static void UpdateAllPossibleMovesFromAllSquares()
         {
-            AllPossibleBishopMovesFromAllSquares = new ulong[8, 8];
+            AllPossibleMovesFromAllSquares = new ulong[8, 8];
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
@@ -127,7 +195,7 @@ namespace ChessEngine.Helpers
                         bishopMoves = bishopMoves | one << square;
                     }
 
-                    AllPossibleBishopMovesFromAllSquares[i, j] = bishopMoves;
+                    AllPossibleMovesFromAllSquares[i, j] = bishopMoves;
                     boardInStringFormat[row, column] = "  ";
                     MovesHelper.GetBinaryString(bishopMoves);
                 }
@@ -136,11 +204,10 @@ namespace ChessEngine.Helpers
 
         public static void UpdateAllPossibleMovesForAllBlockers()
         {
-
-            BishopBlockerMovesToBinaryMoves = new ulong[64, 1 << 14];
-            BishopMovesBinaryToActualMoves = new List<Move>[HashKeyForBishopMoves];
+            BlockerMovesToBinaryMoves = new ulong[64, 1 << 14];
+            BinaryToActualMoves = new List<Move>[64, 1 << 12];
             BishopBlockerMovesToBinaryMovesDictionary = new Dictionary<ulong, ulong>[64];
-            BishopAllBinaryMoves = new HashSet<ulong>();
+            AllBinaryMoves = new HashSet<ulong>[64];
 
             for (int i = 0; i < 8; i++)
             {
@@ -148,7 +215,8 @@ namespace ChessEngine.Helpers
                 {
                     int square = i * 8 + j;
                     BishopBlockerMovesToBinaryMovesDictionary[square] = new Dictionary<ulong, ulong>();
-                    ulong allBishopMoves = AllPossibleBishopMovesFromAllSquares[i, j];
+                    AllBinaryMoves[square] = new HashSet<ulong>();
+                    ulong allBishopMoves = AllPossibleMovesFromAllSquares[i, j];
                     string[,] boardInStringArray = MovesHelper.GetBinaryToBoardInStringArray(allBishopMoves);
                     boardInStringArray[7 - i, j] = "WB";
                     Cell[,] board = BoardHelper.GetBoard(boardInStringArray);
@@ -183,22 +251,91 @@ namespace ChessEngine.Helpers
             int square = row * 8 + column;
             Cell cell = board[row, column];
             List<Move> moves = Bishop.GetMovesFromCache(board, cell);
-            ulong binaryBishopMoves = 0;
+            ulong binaryMoves = 0;
 
             foreach (Move move in moves)
             {
                 int currentSquare = move.To.Row * 8 + move.To.Column;
-                binaryBishopMoves = binaryBishopMoves | one << currentSquare;
+                binaryMoves = binaryMoves | one << currentSquare;
             }
 
-            int index = (int)(binaryBishopMoves % HashKeyForBishopMoves);
-            BishopMovesBinaryToActualMoves[index] = moves;
+            int index = (int)((binaryMoves * MagicNumbersForActualMoves[square]) >> (64 - 12));
+            BinaryToActualMoves[square, index] = moves;
+            AllBinaryMoves[square].Add(binaryMoves);
 
-            int indexForBlocker = (int)((bishopBlockers * MagicNumbersForBishop[square]) >> (64 - 14));
+            List<Move> killerMoves = moves.Where(x => board[x.To.Row, x.To.Column].Piece != null).ToList();
+            ulong killerBinaryRookMoves = 0;
 
-            BishopAllBinaryMoves.Add(binaryBishopMoves);
-            BishopBlockerMovesToBinaryMoves[square, indexForBlocker] = binaryBishopMoves;
-            BishopBlockerMovesToBinaryMovesDictionary[square][bishopBlockers] = binaryBishopMoves;
+            foreach (Move move in killerMoves)
+            {
+                int currentSquare = move.To.Row * 8 + move.To.Column;
+                killerBinaryRookMoves = killerBinaryRookMoves | one << currentSquare;
+            }
+
+            index = (int)((killerBinaryRookMoves * MagicNumbersForActualMoves[square]) >> (64 - 12));
+            BinaryToActualMoves[square, index] = killerMoves;
+            AllBinaryMoves[square].Add(killerBinaryRookMoves);
+            
+            int indexForBlocker = (int)((bishopBlockers * MagicNumbersForBlockers[square]) >> (64 - 14));
+
+            BlockerMovesToBinaryMoves[square, indexForBlocker] = binaryMoves;
+            BishopBlockerMovesToBinaryMovesDictionary[square][bishopBlockers] = binaryMoves;
+        }
+
+        public static void UpdateAllPossibleMovesForOwnBlockers()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int square = i * 8 + j;
+                    AllBinaryMoves[square] = new HashSet<ulong>();
+                    ulong allMoves = AllPossibleMovesFromAllSquares[i, j];
+                    string[,] boardInStringArray = MovesHelper.GetBinaryToBoardInStringArray(allMoves, "WP");
+                    boardInStringArray[7 - i, j] = "WB";
+                    Cell[,] board = BoardHelper.GetBoard(boardInStringArray);
+                    GenerateOwnBlockers(allMoves, 0, i, j, board);
+                }
+            }
+        }
+
+        public static void GenerateOwnBlockers(ulong allMoves, int index, int row, int column, Cell[,] board)
+        {
+            if (index > 63)
+            {
+                UpdateActualMovesForOwnBlockers(allMoves, row, column, board);
+                return;
+            }
+            int currentRow = (index / 8);
+            int currentColumn = index % 8;
+
+            GenerateOwnBlockers(allMoves, index + 1, row, column, board);
+
+            if ((allMoves & (one << index)) > 0)
+            {
+                Piece piece = board[currentRow, currentColumn].Piece;
+                board[currentRow, currentColumn].Piece = null;
+                GenerateOwnBlockers(allMoves & ~(one << index), index + 1, row, column, board);
+                board[currentRow, currentColumn].Piece = piece;
+            }
+        }
+
+        public static void UpdateActualMovesForOwnBlockers(ulong blockers, int row, int column, Cell[,] board)
+        {
+            int square = row * 8 + column;
+            Cell cell = board[row, column];
+            List<Move> moves = Bishop.GetMovesFromCache(board, cell);
+            ulong binaryMoves = 0;
+
+            foreach (Move move in moves)
+            {
+                int currentSquare = move.To.Row * 8 + move.To.Column;
+                binaryMoves = binaryMoves | one << currentSquare;
+            }
+
+            int index = (int)((binaryMoves * MagicNumbersForActualMoves[square]) >> (64 - 12));
+            BinaryToActualMoves[square, index] = moves;
+            AllBinaryMoves[square].Add(binaryMoves);
         }
     }
 }

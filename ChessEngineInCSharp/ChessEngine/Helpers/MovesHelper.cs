@@ -121,8 +121,6 @@ namespace ChessEngine.Helpers
 
         public static List<Move> GetAllMovesForCurrentTurnWithOptimizationVersion3(Cell[,] board, bool isWhiteTurn)
         {
-            CacheService cacheService = new CacheService();
-            cacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
             List<Move> moves = new List<Move>();
 
             for (int i = 0; i < 8; i++)
@@ -176,8 +174,9 @@ namespace ChessEngine.Helpers
 
         public static List<Move> GetAllMovesForCurrentTurnUsingBitboards(Cell[,] board, bool isWhiteTurn)
         {
-            CacheService cacheService = new CacheService();
-            cacheService.InitializeAllPossibleMovesFromEachCellOnBoard();
+            MovesContainer movesContainer = new MovesContainer();
+            movesContainer.MovesList = new List<List<Move>>();
+
             List<Move> moves = new List<Move>();
             ulong occupancy = Engine.ChessEngine.OccupancyForWhite | Engine.ChessEngine.OccupancyForBlack;
 
@@ -185,12 +184,12 @@ namespace ChessEngine.Helpers
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    if (board[i, j].Piece == null)
+                    Piece piece = board[i, j].Piece;
+
+                    if (piece == null)
                     {
                         continue;
                     }
-
-                    Piece piece = board[i, j].Piece;
 
                     if (piece.IsWhite != isWhiteTurn)
                     {
@@ -199,41 +198,114 @@ namespace ChessEngine.Helpers
 
                     int square = i * 8 + j;
 
-                    switch (piece.Name)
+                    switch (piece.Id)
                     {
-                        case "WP":
-                        case "BP":
-                            moves.AddRange(Pawn.GetMovesFromCache(board, board[i, j]));
+                        case 1:
+                        case 7:
+                            movesContainer.MovesList.Add(Pawn.GetMovesFromCache(board, board[i, j]));
                             break;
-                        case "WB":
-                            moves.AddRange(Bishop.GetBishopMovesFromMagicBitboards(square, BishopMovesHelper.AllPossibleBishopMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                        case 2:
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
                             break;
-                        case "BB":
-                            moves.AddRange(Bishop.GetBishopMovesFromMagicBitboards(square, BishopMovesHelper.AllPossibleBishopMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                        case 8:
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
                             break;
-                        case "WN":
-                            moves.AddRange(Knight.GetKnightMovesFromMagicBitboards(square, KnightMovesHelper.AllPossibleKnightMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForWhite));
+                        case 3:
+                            movesContainer.MovesList.Add(Knight.GettMovesFromMagicBitboards(square, KnightMovesHelper.AllPossibleMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForWhite));
                             break;
-                        case "BN":
-                            moves.AddRange(Knight.GetKnightMovesFromMagicBitboards(square, KnightMovesHelper.AllPossibleKnightMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForBlack));
+                        case 9:
+                            movesContainer.MovesList.Add(Knight.GettMovesFromMagicBitboards(square, KnightMovesHelper.AllPossibleMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForBlack));
                             break;
-                        case "WR":
-                            moves.AddRange(Rook.GetRookMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                        case 4:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
                             break;
-                        case "BR":
-                            moves.AddRange(Rook.GetRookMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                        case 10:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
                             break;
-                        case "WQ":
-                            moves.AddRange(Rook.GetRookMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy & ~(one << square), Engine.ChessEngine.OccupancyForWhite & ~(one << square)));
-                            moves.AddRange(Bishop.GetBishopMovesFromMagicBitboards(square, BishopMovesHelper.AllPossibleBishopMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                        case 5:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
                             break;
-                        case "BQ":
-                            moves.AddRange(Rook.GetRookMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
-                            moves.AddRange(Bishop.GetBishopMovesFromMagicBitboards(square, BishopMovesHelper.AllPossibleBishopMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                        case 11:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
                             break;
-                        case "WK":
-                        case "BK":
-                            moves.AddRange(King.GetMovesFromCache(board, board[i, j]));
+                        case 6:
+                            movesContainer.MovesList.Add(King.GetMovesUsingMagicBitboards(square, KingMovesHelper.AllPossibleMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForWhite));
+                            break;
+                        case 12:
+                            movesContainer.MovesList.Add(King.GetMovesUsingMagicBitboards(square, KingMovesHelper.AllPossibleMovesFromAllSquares[i,j], Engine.ChessEngine.OccupancyForBlack));
+                            break;
+                    }
+                }
+            }
+
+            return moves;
+        }
+
+        public static List<Move> GetKillerMovesForCurrentTurnUsingBitboards(Cell[,] board, bool isWhiteTurn)
+        {
+            MovesContainer movesContainer = new MovesContainer();
+            movesContainer.MovesList = new List<List<Move>>();
+
+            List<Move> moves = new List<Move>();
+            ulong occupancy = Engine.ChessEngine.OccupancyForWhite | Engine.ChessEngine.OccupancyForBlack;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    Piece piece = board[i, j].Piece;
+
+                    if (piece == null)
+                    {
+                        continue;
+                    }
+
+                    if (piece.IsWhite != isWhiteTurn)
+                    {
+                        continue;
+                    }
+
+                    int square = i * 8 + j;
+
+                    switch (piece.Id)
+                    {
+                        case 1:
+                        case 7:
+                            movesContainer.MovesList.Add(Pawn.GetKillingMovesFromCache(board, board[i, j]));
+                            break;
+                        case 2:
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                            break;
+                        case 8:
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                            break;
+                        case 3:
+                            movesContainer.MovesList.Add(Knight.GettMovesFromMagicBitboards(square, KnightMovesHelper.AllPossibleMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForWhite));
+                            break;
+                        case 9:
+                            movesContainer.MovesList.Add(Knight.GettMovesFromMagicBitboards(square, KnightMovesHelper.AllPossibleMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForBlack));
+                            break;
+                        case 4:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                            break;
+                        case 10:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                            break;
+                        case 5:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForWhite));
+                            break;
+                        case 11:
+                            movesContainer.MovesList.Add(Rook.GetMovesFromMagicBitboards(square, RookMovesHelper.AllPossibleRookMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                            movesContainer.MovesList.Add(Bishop.GetMovesUsingMagicBitboards(square, BishopMovesHelper.AllPossibleMovesFromAllSquares[i, j], occupancy, Engine.ChessEngine.OccupancyForBlack));
+                            break;
+                        case 6:
+                            movesContainer.MovesList.Add(King.GetMovesUsingMagicBitboards(square, KingMovesHelper.AllPossibleMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForWhite));
+                            break;
+                        case 12:
+                            movesContainer.MovesList.Add(King.GetMovesUsingMagicBitboards(square, KingMovesHelper.AllPossibleMovesFromAllSquares[i, j], Engine.ChessEngine.OccupancyForBlack));
                             break;
                     }
                 }

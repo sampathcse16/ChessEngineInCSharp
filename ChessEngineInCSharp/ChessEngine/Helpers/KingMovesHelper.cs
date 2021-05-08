@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ChessEngine.Pieces;
 
@@ -11,19 +12,19 @@ namespace ChessEngine.Helpers
 
         static int maxRowNumber = 7;
 
-        public static ulong[,] AllPossibleKingMovesFromAllSquares { get; set; }
+        public static ulong[,] AllPossibleMovesFromAllSquares { get; set; }
 
-        public static HashSet<ulong> KingAllBinaryMoves { get; set; }
+        public static HashSet<ulong>[] AllBinaryMoves { get; set; }
 
-        public static List<Move>[] KingMovesBinaryToActualMoves { get; set; }
+        public static List<Move>[,] BinaryToActualMoves { get; set; }
 
-        public static ulong[,] KingBlockerMovesToBinaryMoves { get; set; }
+        public static ulong[,] BlockerMovesToBinaryMoves { get; set; }
 
-        public static Dictionary<ulong, ulong>[] KingBlockerMovesToBinaryMovesDictionary { get; set; }
+        public static Dictionary<ulong, ulong>[] BlockerMovesToBinaryMovesDictionary { get; set; }
 
         public static ulong HashKeyForKingMoves = 199313;
 
-        public static ulong[] MagicNumbersForKing =
+        public static ulong[] MagicNumbersForBlockers =
         {
             1738393888573391104
             ,4663565512578433152
@@ -91,9 +92,77 @@ namespace ChessEngine.Helpers
             ,180144053815353638
         };
 
+        public static ulong[] MagicNumbersForActualMoves =
+        {
+            4758616508509274396
+            ,3459116363984045580
+            ,725642489961709568
+            ,226309197006913600
+            ,111464090777681920
+            ,306808845769376068
+            ,2414596254072834
+            ,883338845930717265
+            ,4611976332446826504
+            ,2310419176608497664
+            ,1155492163933470881
+            ,576620181489451009
+            ,36112360187887620
+            ,144186141474555904
+            ,2314871099189641728
+            ,18024448732995648
+            ,576819468040252297
+            ,45038487375708672
+            ,4697255657038941314
+            ,6064097314874606600
+            ,5045157690884489216
+            ,2306407076403879936
+            ,4611967631983906944
+            ,4613943524105126057
+            ,142938726347776
+            ,292769170150392580
+            ,288810923156578304
+            ,5766938490117825040
+            ,216177188905420800
+            ,573945677906432
+            ,5634999274446848
+            ,40537896395014240
+            ,5193151786717937680
+            ,58640391108558865
+            ,68855857280
+            ,4612319508991868941
+            ,288230393356816384
+            ,4901161617268949008
+            ,301745852261732352
+            ,6755455289336448
+            ,4613023025241014320
+            ,4415763399684
+            ,2305845209579241984
+            ,585468090473551104
+            ,72339112031504512
+            ,144153671016388800
+            ,2884573162123567172
+            ,10481869882373
+            ,597008563042519074
+            ,1941427978644
+            ,148618822365086000
+            ,8796101607576
+            ,35736284332108
+            ,284928138952742
+            ,15462436446227
+            ,1213930093445771
+            ,87969521254736
+            ,4611703610657837089
+            ,4503600701636752
+            ,4625267186217386116
+            ,1158868901548802132
+            ,288235323956659238
+            ,108086393741250577
+            ,288536048974170122
+        };
+
         public static void UpdateAllPossibleKingMovesFromAllSquares()
         {
-            AllPossibleKingMovesFromAllSquares = new ulong[8, 8];
+            AllPossibleMovesFromAllSquares = new ulong[8, 8];
             string[,] boardInStringFormat =
             {
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
@@ -125,7 +194,7 @@ namespace ChessEngine.Helpers
                         kingMoves = kingMoves | one << square;
                     }
 
-                    AllPossibleKingMovesFromAllSquares[i, j] = kingMoves;
+                    AllPossibleMovesFromAllSquares[i, j] = kingMoves;
                     boardInStringFormat[row, column] = "  ";
                     MovesHelper.GetBinaryString(kingMoves);
                 }
@@ -135,18 +204,19 @@ namespace ChessEngine.Helpers
         public static void UpdateAllPossibleKingMovesForAllBlockers()
         {
 
-            KingBlockerMovesToBinaryMoves = new ulong[64, 1 << 8];
-            KingMovesBinaryToActualMoves = new List<Move>[HashKeyForKingMoves];
-            KingBlockerMovesToBinaryMovesDictionary = new Dictionary<ulong, ulong>[64];
-            KingAllBinaryMoves = new HashSet<ulong>();
+            BlockerMovesToBinaryMoves = new ulong[64, 1 << 8];
+            BinaryToActualMoves = new List<Move>[64, 1 << 8];
+            BlockerMovesToBinaryMovesDictionary = new Dictionary<ulong, ulong>[64];
+            AllBinaryMoves = new HashSet<ulong>[64];
 
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
                     int square = i * 8 + j;
-                    KingBlockerMovesToBinaryMovesDictionary[square] = new Dictionary<ulong, ulong>();
-                    ulong allKingMoves = AllPossibleKingMovesFromAllSquares[i, j];
+                    BlockerMovesToBinaryMovesDictionary[square] = new Dictionary<ulong, ulong>();
+                    AllBinaryMoves[square] = new HashSet<ulong>();
+                    ulong allKingMoves = AllPossibleMovesFromAllSquares[i, j];
                     string[,] boardInStringArray = MovesHelper.GetBinaryToBoardInStringArray(allKingMoves, "WP");
                     boardInStringArray[7 - i, j] = "WK";
                     Cell[,] board = BoardHelper.GetBoard(boardInStringArray);
@@ -181,21 +251,35 @@ namespace ChessEngine.Helpers
             int square = row * 8 + column;
             Cell cell = board[row, column];
             List<Move> moves = King.GetMovesFromCache(board, cell);
-            ulong binaryKingMoves = 0;
+            ulong binaryMoves = 0;
 
             foreach (Move move in moves)
             {
                 int currentSquare = move.To.Row * 8 + move.To.Column;
-                binaryKingMoves = binaryKingMoves | one << currentSquare;
+                binaryMoves = binaryMoves | one << currentSquare;
             }
 
-            int index = (int)(binaryKingMoves % HashKeyForKingMoves);
-            KingMovesBinaryToActualMoves[index] = moves;
+            int index = (int)((binaryMoves * MagicNumbersForActualMoves[square]) >> (64 - 8));
+            BinaryToActualMoves[square, index] = moves;
+            AllBinaryMoves[square].Add(binaryMoves);
 
-            int indexForBlocker = (int)((kingBlockers * MagicNumbersForKing[square]) >> (64 - 8));
-            KingAllBinaryMoves.Add(binaryKingMoves);
-            KingBlockerMovesToBinaryMoves[square, indexForBlocker] = binaryKingMoves;
-            KingBlockerMovesToBinaryMovesDictionary[square][kingBlockers] = binaryKingMoves;
+            List<Move> killerMoves = moves.Where(x => board[x.To.Row, x.To.Column].Piece != null).ToList();
+            ulong killerBinaryRookMoves = 0;
+
+            foreach (Move move in killerMoves)
+            {
+                int currentSquare = move.To.Row * 8 + move.To.Column;
+                killerBinaryRookMoves = killerBinaryRookMoves | one << currentSquare;
+            }
+
+            index = (int)((killerBinaryRookMoves * MagicNumbersForActualMoves[square]) >> (64 - 8));
+            BinaryToActualMoves[square, index] = killerMoves;
+            AllBinaryMoves[square].Add(killerBinaryRookMoves);
+
+            int indexForBlocker = (int)((kingBlockers * MagicNumbersForBlockers[square]) >> (64 - 8));
+
+            BlockerMovesToBinaryMoves[square, indexForBlocker] = binaryMoves;
+            BlockerMovesToBinaryMovesDictionary[square][kingBlockers] = binaryMoves;
         }
     }
 }

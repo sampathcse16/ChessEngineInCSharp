@@ -904,11 +904,18 @@ namespace ChessEngine.Pieces
             return false;
         }
 
-        public static List<Move> GetKingMovesFromMagicBitboards(int square, ulong kingMask, ulong ownBlockers)
+        public static List<Move> GetMovesUsingMagicBitboards(int square, ulong kingMask, ulong ownBlockers)
         {
             ulong kingBlockers = kingMask & ownBlockers;
-            ulong movesInBinary = KingMovesHelper.KingBlockerMovesToBinaryMoves[square, (int)((kingBlockers * KingMovesHelper.MagicNumbersForKing[square]) >> (56))];
-            return KingMovesHelper.KingMovesBinaryToActualMoves[(int)(movesInBinary % KnightMovesHelper.HashKeyForKnightMoves)];
+            ulong movesInBinary = KingMovesHelper.BlockerMovesToBinaryMoves[square, (int)((kingBlockers * KingMovesHelper.MagicNumbersForBlockers[square]) >> (56))];
+            return KingMovesHelper.BinaryToActualMoves[square, (int)((movesInBinary * KingMovesHelper.MagicNumbersForActualMoves[square]) >> (56))] ?? new List<Move>();
+        } 
+
+        public static List<Move> GetKillingMovesUsingMagicBitboards(int square, ulong knightMask, ulong ownBlockers, ulong opponentBlockers)
+        {
+            ulong knightBlockers = knightMask & ownBlockers;
+            ulong movesInBinary = (KingMovesHelper.BlockerMovesToBinaryMoves[square, (int)((knightBlockers * KingMovesHelper.MagicNumbersForBlockers[square]) >> (56))]) & opponentBlockers;
+            return KingMovesHelper.BinaryToActualMoves[square, (int)((movesInBinary * KingMovesHelper.MagicNumbersForActualMoves[square]) >> (56))] ?? new List<Move>();
         }
 
         #endregion

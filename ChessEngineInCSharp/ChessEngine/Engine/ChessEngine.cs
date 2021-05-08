@@ -14,6 +14,7 @@ namespace ChessEngine.Engine
         public static int[] depthValues = { 0, 2, 2, 4, 4, 6, 6, 8, 8, 9, 9, 10, 10 };
         public static Move[] AllPossibleMoves { get; set; }
         public static int NodesEvaluated { get; set; }
+        public static int CachedMovesCounter { get; set; }
         public static Dictionary<long, BoardState> TranspositionTable { get; set; }
         public static Dictionary<long, BoardState> TranspositionTableForMaximizer { get; set; }
         public static Dictionary<long, BoardState> TranspositionTableForMinimizer { get; set; }
@@ -64,7 +65,7 @@ namespace ChessEngine.Engine
 
                 node.Moves = moves;
                 node.ChildNodes = new List<Node>();
-                node.Costs = new Dictionary<int, int>(node.Moves.Count);
+                node.Costs = new Dictionary<int, int>();
 
                 foreach (Move move in moves)
                 {
@@ -134,7 +135,7 @@ namespace ChessEngine.Engine
 
                 node.Moves = moves;
                 node.ChildNodes = new List<Node>();
-                node.Costs = new Dictionary<int, int>(node.Moves.Count);
+                node.Costs = new Dictionary<int, int>();
 
                 foreach (Move move in moves)
                 {
@@ -708,7 +709,7 @@ namespace ChessEngine.Engine
 
                 node.Moves = moves;
                 node.ChildNodes = new List<Node>();
-                node.Costs = new Dictionary<int, int>(node.Moves.Count);
+                node.Costs = new Dictionary<int, int>();
                 int value = cost;
 
                 foreach (Move move in moves)
@@ -760,29 +761,21 @@ namespace ChessEngine.Engine
 
                 if (TranspositionTableForMaximizerMoves.ContainsKey(zorbistKey))
                 {
-                    BoardState boardState = TranspositionTableForMaximizerMoves[zorbistKey];
-
-                    if (maximizingPlayer == boardState.Maximizer)
-                    {
-                        moves = boardState.Node.Moves;
-                    }
-                    else
-                    {
-                        moves = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, true);
-                    }
+                    moves = TranspositionTableForMaximizerMoves[zorbistKey].Node.Moves;
                 }
                 else
                 {
-                    moves = MovesHelper.GetAllMovesForCurrentTurnUsingBitboards(board, true);
-                    List<Move> movesToCompare = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, true);
+                    moves = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, true);
+                    //List<Move> movesToCompare = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, true);
 
-                    if (moves.Count != movesToCompare.Count)
-                    {
+                    //if (moves.Count != movesToCompare.Count)
+                    //{
 
-                    }
+                    //}
+                    moves = moves.OrderByDescending(x => GetMoveCostFromLevelTranspositionTable(x, depth, board, whiteMoves, blackMoves, maximizingPlayer)).ToList();
                 }
 
-                moves = moves.OrderByDescending(x => GetMoveCostFromLevelTranspositionTable(x, depth, board, whiteMoves, blackMoves, maximizingPlayer)).ToList();
+               
                 maxCostInOneMove = board[moves[0].To.Row, moves[0].To.Column].Piece?.Value ?? 0;
                 int finalMaxCostAfterAllMoves = cost + maxCostInOneMove;
 
@@ -798,24 +791,24 @@ namespace ChessEngine.Engine
 
                 node.Moves = moves;
                 node.ChildNodes = new List<Node>();
-                node.Costs = new Dictionary<int, int>(node.Moves.Count);
+                node.Costs = new Dictionary<int, int>();
 
                 if (!TranspositionTableForMaximizerMoves.ContainsKey(zorbistKey))
                 {
-                    TranspositionTableForMaximizerMoves.Add(zorbistKey, new BoardState { Maximizer = maximizingPlayer, Node = node, IsToBeOrderedBasedOnCost = true });
+                    TranspositionTableForMaximizerMoves.Add(zorbistKey, new BoardState { Maximizer = true, Node = node, IsToBeOrderedBasedOnCost = true });
                 }
 
                 foreach (Move move in moves)
                 {
                     if (depth == 6
-                        && move.From.Row == 7 && move.From.Column == 2
-                        && move.To.Row == 7 && move.To.Column == 4)
+                        && move.From.Row == 0 && move.From.Column == 1
+                        && move.To.Row == 2 && move.To.Column == 2)
                     {
 
                     }
 
-                    if (depth == 4 && move.From.Row == 0 && move.From.Column == 2
-                        && move.To.Row == 4 && move.To.Column == 6)
+                    if (depth == 4 && move.From.Row == 2 && move.From.Column == 2
+                        && move.To.Row == 4 && move.To.Column == 3)
                     {
 
                     }
@@ -838,14 +831,16 @@ namespace ChessEngine.Engine
                     int reverseMoveId = GetReverseMoveId(move);
                     Node childNode = new Node { MoveId = moveId };
 
-                    int moveIdWithPieceId = (depth * 10000) + moveId;
-                    board[move.To.Row, move.To.Column].MaximizingPlayerAttacks.Add(moveIdWithPieceId);
-
                     long zorbistKeyBackup = zorbistKey;
                     zorbistKey = GetUpdatedZorbistKey(board, move, zorbistKey);
                     UpdatedOccupancy(board, move);
                     MakeMove(board, move);
+                    
+                    //if (!IsOccupancyValid(board))
+                    //{
 
+                    //}
+                    
                     if (backedupOpponentPiece != null)
                     {
                         currentMoveCost = currentMoveCost + ((backedupOpponentPiece.Value) + (5 * depthValues[depth]));
@@ -863,8 +858,13 @@ namespace ChessEngine.Engine
                     movesStatck.Pop();
                     RevertOccupancy(board, move, backedupOpponentPiece);
                     RevertMove(board, move, backedupOpponentPiece);
+
+                    //if (!IsOccupancyValid(board))
+                    //{
+
+                    //}
+
                     zorbistKey = zorbistKeyBackup;
-                    LevelTranspositionTable[depth][moveId] = currentMoveEvaluationValue;
                     node.Costs.Add(moveId, currentMoveEvaluationValue);
                     node.ChildNodes.Add(childNode);
                     value = Math.Max(value, currentMoveEvaluationValue);
@@ -907,28 +907,20 @@ namespace ChessEngine.Engine
 
                 if (TranspositionTableForMinimizerMoves.ContainsKey(zorbistKey))
                 {
-                    BoardState boardState = TranspositionTableForMinimizerMoves[zorbistKey];
-                    if (maximizingPlayer == boardState.Maximizer)
-                    {
-                        moves = boardState.Node.Moves;
-                    }
-                    else
-                    {
-                        moves = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, false);
-                    }
+                    moves = TranspositionTableForMinimizerMoves[zorbistKey].Node.Moves;
                 }
                 else
                 {
-                    moves = MovesHelper.GetAllMovesForCurrentTurnUsingBitboards(board, false);
-                    List<Move> movesToCompare = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, true);
+                    moves = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, false);
+                    //List<Move> movesToCompare = MovesHelper.GetAllMovesForCurrentTurnWithOptimizationVersion3(board, false);
 
-                    if (moves.Count != movesToCompare.Count)
-                    {
+                    //if (moves.Count != movesToCompare.Count)
+                    //{
 
-                    }
+                    //}
+                    moves = moves.OrderBy(x => GetMoveCostFromLevelTranspositionTable(x, depth, board, whiteMoves, blackMoves, maximizingPlayer)).ToList();
                 }
 
-                moves = moves.OrderBy(x => GetMoveCostFromLevelTranspositionTable(x, depth, board, whiteMoves, blackMoves, maximizingPlayer)).ToList();
                 maxCostInOneMove = board[moves[0].To.Row, moves[0].To.Column].Piece?.Value ?? 0;
 
                 int finalMaxCostAfterAllMoves = cost - maxCostInOneMove;
@@ -945,7 +937,7 @@ namespace ChessEngine.Engine
 
                 node.Moves = moves;
                 node.ChildNodes = new List<Node>();
-                node.Costs = new Dictionary<int, int>(node.Moves.Count);
+                node.Costs = new Dictionary<int, int>();
 
                 if (!TranspositionTableForMinimizerMoves.ContainsKey(zorbistKey))
                 {
@@ -954,14 +946,14 @@ namespace ChessEngine.Engine
 
                 foreach (Move move in moves)
                 {
-                    if (depth == 5 && move.From.Row == 5 && move.From.Column == 5
-                        && move.To.Row == 3 && move.To.Column == 4)
+                    if (depth == 5 && move.From.Row == 7 && move.From.Column == 3
+                        && move.To.Row == 5 && move.To.Column == 3)
                     {
 
                     }
 
-                    if (depth == 3 && move.From.Row == 3 && move.From.Column == 4
-                        && move.To.Row == 4 && move.To.Column == 6)
+                    if (depth == 3 && move.From.Row == 5 && move.From.Column == 3
+                        && move.To.Row == 3 && move.To.Column == 1)
                     {
 
                     }
@@ -983,12 +975,17 @@ namespace ChessEngine.Engine
                     int moveId = GetMoveId(move);
                     int reverseMoveId = GetReverseMoveId(move);
                     Node childNode = new Node { MoveId = moveId, IsWhite = true };
-                    int moveIdWithPieceId = (BoardHelper.PieceIdDictionary[board[move.From.Row, move.From.Column].Piece.Name] * 10000) + moveId;
-                    board[move.To.Row, move.To.Column].MinimizingPlayerAttacks.Add(moveIdWithPieceId);
-
+                    
                     long zorbistKeyBackup = zorbistKey;
                     zorbistKey = GetUpdatedZorbistKey(board, move, zorbistKey);
+
+                    UpdatedOccupancy(board, move);
                     MakeMove(board, move);
+
+                    //if (!IsOccupancyValid(board))
+                    //{
+
+                    //}
 
                     if (backedupOpponentPiece != null)
                     {
@@ -1006,10 +1003,10 @@ namespace ChessEngine.Engine
                     //}
 
                     movesStatck.Pop();
+                    RevertOccupancy(board, move, backedupOpponentPiece);
                     RevertMove(board, move, backedupOpponentPiece);
                     zorbistKey = zorbistKeyBackup;
-                    LevelTranspositionTable[depth][moveId] = currentMoveEvaluationValue;
-                    node.Costs.Add(GetMoveId(move), currentMoveEvaluationValue);
+                    node.Costs.Add(moveId, currentMoveEvaluationValue);
                     node.ChildNodes.Add(childNode);
                     value = Math.Min(value, currentMoveEvaluationValue);
 
@@ -1368,6 +1365,9 @@ namespace ChessEngine.Engine
 
         public static void UpdateOccupancies(Cell[,] board)
         {
+            OccupancyForWhite = 0;
+            OccupancyForBlack = 0;
+
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
@@ -1388,7 +1388,7 @@ namespace ChessEngine.Engine
                 }
             }
         }
-        
+
         public static void MakeMove(Cell[,] board, Move move)
         {
             Piece piece = board[move.From.Row, move.From.Column].Piece;
@@ -2029,8 +2029,7 @@ namespace ChessEngine.Engine
 
             return 0;
         }
-
-
+        
         public static string GetMoveTree(Node node)
         {
             string moveTree = string.Empty;
@@ -2060,7 +2059,6 @@ namespace ChessEngine.Engine
 
             return moveTree;
         }
-
 
         public static List<Move> GetMoveTreeList(Node node)
         {
@@ -2118,6 +2116,49 @@ namespace ChessEngine.Engine
             }
 
             return 0;
+        }
+
+        public static bool IsOccupancyValid(Cell[,] board)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int square = i * 8 + j;
+
+                    if (board[i, j].Piece != null)
+                    {
+                        if (board[i, j].Piece.Name[0] == 'W')
+                        {
+                            if ((OccupancyForWhite & (one << square)) == 0)
+                            {
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            if ((OccupancyForBlack & (one << square)) == 0)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if ((OccupancyForWhite & (one << square)) != 0)
+                        {
+                            return false;
+                        }
+
+                        if ((OccupancyForBlack & (one << square)) != 0)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }

@@ -226,7 +226,7 @@ namespace ChessEngine.Tests.PieceMoveTests
         public void RookTests10()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            RookMovesHelper.RookMovesBinaryToActualMoves = new List<Move>[RookMovesHelper.HashKeyForRookMoves];
+            RookMovesHelper.BinaryToActualMoves = new List<Move>[64, 1 << 14];
             RookMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             RookMovesHelper.UpdateAllPossibleMovesForAllBlockers();
             watch.Stop();
@@ -238,7 +238,7 @@ namespace ChessEngine.Tests.PieceMoveTests
         public void RookTests11()
         {
             //649579
-            RookMovesHelper.RookMovesBinaryToActualMoves = new List<Move>[RookMovesHelper.HashKeyForRookMoves];
+            RookMovesHelper.BinaryToActualMoves = new List<Move>[64, 1 << 14];
             RookMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             RookMovesHelper.UpdateAllPossibleMovesForAllBlockers();
 
@@ -266,7 +266,7 @@ namespace ChessEngine.Tests.PieceMoveTests
 
             for (int i = 0; i < 10000000; i++)
             {
-                List<Move> moves = Rook.GetRookMovesFromMagicBitboards(square, rookMask, occupancy, ownBlockers);
+                List<Move> moves = Rook.GetMovesFromMagicBitboards(square, rookMask, occupancy, ownBlockers);
             }
 
             watch.Stop();
@@ -290,7 +290,7 @@ namespace ChessEngine.Tests.PieceMoveTests
             };
 
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
-            Cell cell = board[0,1];
+            Cell cell = board[0, 1];
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             for (int i = 0; i < 10000000; i++)
@@ -306,33 +306,71 @@ namespace ChessEngine.Tests.PieceMoveTests
         [Fact]
         public void RookTests13()
         {
-            //649579
-            RookMovesHelper.RookMovesBinaryToActualMoves = new List<Move>[RookMovesHelper.HashKeyForRookMoves];
             RookMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             RookMovesHelper.UpdateAllPossibleMovesForAllBlockers();
+            RookMovesHelper.UpdateAllPossibleMovesForOwnBlockers();
 
             string[,] boardInStringFormat =
             {
-                {"  ", "BK", "  ", "WQ", "  ", "  ", "  ", "  "},
+                {"  ", "BK", "  ", "BQ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
-                {"  ", "  ", "  ", "WR", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+                {"  ", "  ", "WP", "WR", "WP", "  ", "  ", "  "},
                 {"  ", "  ", "  ", "WB", "  ", "  ", "  ", "  "}
             };
 
             ulong one = 1;
-            int row = 3;
+            int row = 1;
             int column = 3;
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
             int square = row * 8 + column;
             ulong rookMask = RookMovesHelper.AllPossibleRookMovesFromAllSquares[row, column];
             ulong occupancy = BoardHelper.GetOccupancy(board);
             ulong ownBlockers = one << 3;
-            ownBlockers = ownBlockers | one << 59;
+            //ownBlockers = ownBlockers | one << 59;
+            ownBlockers = ownBlockers | one << 10;
+            ownBlockers = ownBlockers | one << 12;
             var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            //for (int i = 0; i < 64; i++)
+            //{
+            //    Random random = new Random();
+            //    bool found = false;
+            //    ulong magicNumber = 0;
+
+            //    while (!found)
+            //    {
+            //        found = true;
+            //        HashSet<int> indexes = new HashSet<int>();
+            //        magicNumber = (ulong)(MovesHelper.LongRandom(0, Int64.MaxValue, random)
+            //                              & MovesHelper.LongRandom(0, Int64.MaxValue, random)
+            //                              & MovesHelper.LongRandom(0, Int64.MaxValue, random));
+
+            //        foreach (ulong binaryMove in RookMovesHelper.AllBinaryMoves[i])
+            //        {
+            //            int index = (int)((binaryMove * magicNumber) >> (64 - 12));
+
+            //            if (indexes.Contains(index))
+            //            {
+            //                found = false;
+            //                break;
+            //            }
+            //            else
+            //            {
+            //                indexes.Add(index);
+            //            }
+            //        }
+
+            //        if (found)
+            //        {
+            //            output.WriteLine(magicNumber.ToString());
+            //            break;
+            //        }
+            //    }
+            //}
 
             //for (int i = 0; i < 64; i++)
             //{
@@ -371,10 +409,9 @@ namespace ChessEngine.Tests.PieceMoveTests
             //    output.WriteLine(magicNumber.ToString());
             //}
 
-
             for (int i = 0; i < 10000000; i++)
             {
-                List<Move> moves = Rook.GetRookMovesFromMagicBitboards(square, rookMask, occupancy, ownBlockers);
+                List<Move> moves = Rook.GetKillingMovesFromMagicBitboards(square, rookMask, occupancy, ownBlockers);
             }
 
             watch.Stop();

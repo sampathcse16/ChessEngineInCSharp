@@ -280,11 +280,10 @@ namespace ChessEngine.Pieces
             int row = cell.Position.Row;
             int column = cell.Position.Column;
             int moveId = 0;
-            Piece piece = cell.Piece;
-
+            int fromSquareId = (cell.Position.Row * 8 + cell.Position.Column) * 100;
             List<Move> moves = new List<Move>();
 
-            if (!cell.Piece.Name.EndsWith("P"))
+            if (cell.Piece.Id != 1)
             {
                 return moves;
             }
@@ -296,33 +295,37 @@ namespace ChessEngine.Pieces
 
             if (board[row + 1, column].Piece == null)
             {
-                moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + column);
+                moveId = fromSquareId + ((row + 1) * 8 + column);
                 moves.Add(CacheService.AllPossibleMoves[moveId]);
-            }
 
-            if (row == 1)
-            {
-                if (board[row + 1, column].Piece == null && board[row + 2, column].Piece == null)
+                if (row == 1)
                 {
-                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 2) * 8 + column);
-                    moves.Add(CacheService.AllPossibleMoves[moveId]);
+                    if (board[row + 2, column].Piece == null)
+                    {
+                        moveId = fromSquareId + ((row + 2) * 8 + column);
+                        moves.Add(CacheService.AllPossibleMoves[moveId]);
+                    }
                 }
             }
-
+            
             if (column + 1 < 8)
             {
-                if (board[row + 1, column + 1].Piece != null && !board[row + 1, column + 1].Piece.IsWhite)
+                Piece piece = board[row + 1, column + 1].Piece;
+
+                if (piece != null && !piece.IsWhite)
                 {
-                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column+1));
+                    moveId = fromSquareId + ((row + 1) * 8 + (column + 1));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
                 }
             }
 
             if (column - 1 >= 0)
             {
-                if (board[row + 1, column - 1].Piece != null && !board[row + 1, column - 1].Piece.IsWhite)
+                Piece piece = board[row + 1, column - 1].Piece;
+
+                if (piece != null && !piece.IsWhite)
                 {
-                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row + 1) * 8 + (column - 1));
+                    moveId = fromSquareId + ((row + 1) * 8 + (column - 1));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
                 }
             }
@@ -335,7 +338,6 @@ namespace ChessEngine.Pieces
             int row = cell.Position.Row;
             int column = cell.Position.Column;
             int moveId = 0;
-            Piece piece = cell.Piece;
 
             List<Move> moves = new List<Move>();
 
@@ -368,7 +370,7 @@ namespace ChessEngine.Pieces
             {
                 if (board[row - 1, column + 1].Piece != null && board[row - 1, column + 1].Piece.IsWhite)
                 {
-                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column+1));
+                    moveId = (cell.Position.Row * 8 + cell.Position.Column) * 100 + ((row - 1) * 8 + (column + 1));
                     moves.Add(CacheService.AllPossibleMoves[moveId]);
                 }
             }
@@ -413,7 +415,7 @@ namespace ChessEngine.Pieces
             {
                 return moves;
             }
-            
+
             if (column + 1 < 8)
             {
                 if (board[row + 1, column + 1].Piece != null && !board[row + 1, column + 1].Piece.IsWhite)
@@ -453,7 +455,7 @@ namespace ChessEngine.Pieces
             {
                 return moves;
             }
-            
+
             if (column + 1 < 8)
             {
                 if (board[row - 1, column + 1].Piece != null && board[row - 1, column + 1].Piece.IsWhite)

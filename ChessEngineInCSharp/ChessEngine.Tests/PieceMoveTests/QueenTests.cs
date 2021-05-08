@@ -162,11 +162,11 @@ namespace ChessEngine.Tests.PieceMoveTests
         [Fact]
         public void QueenTests7()
         {
-            RookMovesHelper.RookMovesBinaryToActualMoves = new List<Move>[RookMovesHelper.HashKeyForRookMoves];
+            RookMovesHelper.BinaryToActualMoves = new List<Move>[64, 1 << 14];
             RookMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             RookMovesHelper.UpdateAllPossibleMovesForAllBlockers();
 
-            BishopMovesHelper.BishopMovesBinaryToActualMoves = new List<Move>[BishopMovesHelper.HashKeyForBishopMoves];
+            BishopMovesHelper.BinaryToActualMoves = new List<Move>[64, 1 << 12];
             BishopMovesHelper.UpdateAllPossibleMovesFromAllSquares();
             BishopMovesHelper.UpdateAllPossibleMovesForAllBlockers();
 
@@ -187,7 +187,7 @@ namespace ChessEngine.Tests.PieceMoveTests
             int column = 3;
             Cell[,] board = BoardHelper.GetBoard(boardInStringFormat);
             int square = row * 8 + column;
-            ulong bishopMask = BishopMovesHelper.AllPossibleBishopMovesFromAllSquares[row, column];
+            ulong bishopMask = BishopMovesHelper.AllPossibleMovesFromAllSquares[row, column];
             ulong rookMask = RookMovesHelper.AllPossibleRookMovesFromAllSquares[row, column];
             ulong occupancy = BoardHelper.GetOccupancy(board);
             ulong ownBlockers = 0;
@@ -259,8 +259,8 @@ namespace ChessEngine.Tests.PieceMoveTests
 
             for (int i = 0; i < 10000000; i++)
             {
-                List<Move> moves = Bishop.GetBishopMovesFromMagicBitboards(square, bishopMask, occupancy, ownBlockers);
-                moves.AddRange(Rook.GetRookMovesFromMagicBitboards(square, rookMask, occupancy, ownBlockers));
+                List<Move> moves = Bishop.GetMovesUsingMagicBitboards(square, bishopMask, occupancy, ownBlockers);
+                moves.AddRange(Rook.GetMovesFromMagicBitboards(square, rookMask, occupancy, ownBlockers));
             }
 
             watch.Stop();
